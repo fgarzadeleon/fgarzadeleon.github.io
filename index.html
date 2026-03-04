@@ -1,1 +1,1448 @@
-Hello Words
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASTEROIDELL</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020812;
+    --letter-glow: #00ffcc;
+    --danger: #ff3c3c;
+    --success: #00ff88;
+    --ui-dim: #334466;
+    --ui-bright: #88aadd;
+    --card-bg: #0d1e38;
+    --card-border: #2244aa;
+    --font-hud: 'Share Tech Mono', monospace;
+    --font-title: 'Orbitron', sans-serif;
+    --warn: #ffcc44;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: #fff;
+    font-family: var(--font-hud);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    user-select: none;
+  }
+  canvas { position: fixed; top: 0; left: 0; pointer-events: none; }
+  #stars-canvas { z-index: 0; }
+  #game-canvas  { z-index: 1; }
+
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px;
+    background: linear-gradient(to bottom, rgba(2,8,18,0.97) 60%, transparent);
+    pointer-events: none;
+  }
+  #hud button { pointer-events: all; }
+  #title-hud { font-family: var(--font-title); font-size: 18px; font-weight: 900; letter-spacing: 4px; color: var(--letter-glow); text-shadow: 0 0 20px var(--letter-glow); }
+  .hud-stat { display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .hud-label { font-size: 9px; letter-spacing: 2px; color: var(--ui-dim); text-transform: uppercase; }
+  .hud-value { font-size: 16px; letter-spacing: 2px; color: var(--ui-bright); }
+  #min-len-val { color: var(--warn); text-shadow: 0 0 8px var(--warn); }
+  #lives-val { color: var(--success); letter-spacing: 1px; transition: color 0.3s; }
+  #level-val { color: var(--letter-glow); text-shadow: 0 0 8px var(--letter-glow); }
+
+
+  /* ── CHALLENGE SCREEN ── */
+  #challenge-screen { gap: 18px; }
+  #challenge-screen .screen-title { font-size: clamp(22px, 5vw, 40px); }
+  #challenge-grid { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: 760px; }
+  .challenge-card {
+    width: 210px; min-height: 200px;
+    background: rgba(5,14,31,0.92);
+    border-radius: 10px;
+    padding: 22px 18px 18px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .challenge-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: 10px;
+    border: 1px solid var(--ui-dim); transition: border-color 0.2s;
+    pointer-events: none;
+  }
+  .challenge-card:hover::before { border-color: var(--card-color, var(--letter-glow)); }
+  .challenge-card:hover {
+    box-shadow: 0 0 32px var(--card-glow, rgba(0,255,204,0.2));
+    transform: translateY(-5px);
+  }
+  .challenge-card.curse::before { border-color: rgba(255,60,60,0.3); }
+  .challenge-card.curse:hover::before { border-color: var(--danger); }
+  .challenge-card.curse:hover { box-shadow: 0 0 32px rgba(255,60,60,0.25); }
+  .challenge-card.boon::before { border-color: rgba(0,255,136,0.3); }
+  .challenge-card.boon:hover::before { border-color: var(--success); }
+  .challenge-card.boon:hover { box-shadow: 0 0 32px rgba(0,255,136,0.2); }
+  .challenge-card.wild::before { border-color: rgba(255,204,68,0.3); }
+  .challenge-card.wild:hover::before { border-color: var(--warn); }
+  .challenge-card.wild:hover { box-shadow: 0 0 32px rgba(255,204,68,0.2); }
+  .ch-icon { font-size: 38px; line-height: 1; margin-bottom: 2px; }
+  .ch-type {
+    font-size: 8px; letter-spacing: 3px; padding: 2px 8px; border-radius: 20px;
+    text-transform: uppercase; font-family: var(--font-hud);
+  }
+  .ch-type.curse { background: rgba(255,60,60,0.15); color: var(--danger); border: 1px solid rgba(255,60,60,0.3); }
+  .ch-type.boon  { background: rgba(0,255,136,0.1);  color: var(--success); border: 1px solid rgba(0,255,136,0.25); }
+  .ch-type.wild  { background: rgba(255,204,68,0.1); color: var(--warn);    border: 1px solid rgba(255,204,68,0.25); }
+  .ch-name { font-family: var(--font-title); font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+  .ch-desc { font-size: 11px; letter-spacing: 0.5px; color: var(--ui-bright); line-height: 1.75; }
+  .ch-effect { font-size: 10px; letter-spacing: 1px; margin-top: auto; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); width: 100%; }
+  .curse .ch-effect { color: var(--danger); }
+  .boon  .ch-effect { color: var(--success); }
+  .wild  .ch-effect { color: var(--warn); }
+  #challenge-skip { font-family: var(--font-hud); font-size: 10px; letter-spacing: 2px; color: var(--ui-dim); background: none; border: none; cursor: pointer; text-decoration: underline; }
+  #challenge-skip:hover { color: var(--ui-bright); }
+  #active-challenge-badge {
+    position: fixed; left: 14px; top: 72px; z-index: 10;
+    background: rgba(5,14,31,0.85); border-radius: 6px;
+    padding: 5px 10px; font-size: 10px; letter-spacing: 1px;
+    pointer-events: none; display: none;
+  }
+
+  /* ── UPGRADE OVERLAY ── */
+  #upgrade-overlay {
+    position: fixed; inset: 0; z-index: 22;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 22px; background: rgba(2,8,18,0.96);
+    animation: fadeIn 0.4s ease;
+  }
+  #upgrade-overlay.hidden { display: none; }
+  @keyframes fadeIn { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
+  #upgrade-title { font-family: var(--font-title); font-size: 13px; font-weight: 700; letter-spacing: 6px; color: var(--warn); text-shadow: 0 0 20px var(--warn); }
+  #upgrade-level-badge { font-family: var(--font-title); font-size: 44px; font-weight: 900; letter-spacing: 4px; color: var(--letter-glow); text-shadow: 0 0 40px var(--letter-glow); }
+  #upgrade-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; max-width: 700px; }
+  .upgrade-card {
+    width: 190px; min-height: 170px;
+    background: rgba(5,14,31,0.9);
+    border: 1px solid var(--ui-dim);
+    border-radius: 8px;
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    text-align: center;
+  }
+  .upgrade-card:hover {
+    border-color: var(--letter-glow);
+    box-shadow: 0 0 28px rgba(0,255,204,0.25);
+    transform: translateY(-4px);
+  }
+  .upgrade-icon { font-size: 32px; line-height: 1; }
+  .upgrade-name { font-family: var(--font-title); font-size: 11px; font-weight: 700; letter-spacing: 3px; color: var(--letter-glow); }
+  .upgrade-desc { font-size: 11px; letter-spacing: 1px; color: var(--ui-bright); line-height: 1.7; }
+  .upgrade-rarity { font-size: 9px; letter-spacing: 2px; margin-top: auto; }
+  .rarity-common { color: #667; }
+  .rarity-rare   { color: #4499ff; }
+  .rarity-epic   { color: #c084fc; }
+  #menu-btn {
+    font-family: var(--font-hud); font-size: 10px; letter-spacing: 2px;
+    padding: 5px 12px; border: 1px solid var(--ui-dim); background: transparent;
+    color: var(--ui-dim); cursor: pointer; transition: all 0.2s; pointer-events: all;
+  }
+  #menu-btn:hover { border-color: var(--danger); color: var(--danger); }
+  #quit-overlay {
+    position: fixed; inset: 0; z-index: 25;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; background: rgba(2,8,18,0.92);
+  }
+  #quit-overlay.hidden { display: none; }
+  #quit-title { font-family: var(--font-title); font-size: 28px; font-weight: 900; letter-spacing: 5px; color: var(--warn); }
+  #quit-sub { font-size: 12px; letter-spacing: 2px; color: var(--ui-bright); }
+  .quit-row { display: flex; gap: 14px; }
+
+  #hand-area {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+    padding: 10px 20px 14px;
+    background: linear-gradient(to top, rgba(2,8,18,0.98) 70%, transparent);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  #hand-label { font-size: 10px; letter-spacing: 3px; color: var(--ui-dim); }
+  #hand-cards { display: flex; gap: 12px; align-items: flex-end; }
+
+  .card {
+    width: 64px; height: 90px;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+    font-family: var(--font-title);
+  }
+  .card:hover { transform: translateY(-8px); border-color: var(--letter-glow); box-shadow: 0 0 18px rgba(0,255,204,0.3); }
+  .card.selected { transform: translateY(-14px); border-color: var(--letter-glow); box-shadow: 0 0 24px rgba(0,255,204,0.5); }
+  .card.disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; pointer-events: none; }
+  .card-letter { font-size: 22px; font-weight: 900; line-height: 1; color: #fff; }
+  .card-letter.bot { color: #aaccff; font-size: 18px; }
+  .card-divider { width: 36px; height: 1px; background: var(--card-border); margin: 3px 0; }
+  .card-dot { position: absolute; bottom: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; }
+  #deck-info { font-size: 9px; letter-spacing: 1px; color: var(--ui-dim); }
+
+
+    position: fixed; top: 52px; left: 0; right: 0; z-index: 10;
+    display: flex; justify-content: center; gap: 0;
+    pointer-events: none;
+  }
+
+  #skip-btn {
+    position: fixed; bottom: 148px; left: 50%; transform: translateX(-50%);
+    z-index: 11; font-family: var(--font-hud); font-size: 11px; letter-spacing: 2px;
+    padding: 6px 18px; border: 1px solid var(--ui-dim); background: transparent;
+    color: var(--warn); cursor: pointer; transition: all 0.2s;
+    display: none;
+  }
+  #skip-btn:hover { border-color: var(--warn); }
+
+  #word-panel {
+    position: fixed; bottom: 170px; left: 50%; transform: translateX(-50%);
+    z-index: 11;
+    background: rgba(5,14,31,0.94);
+    border: 1px solid var(--ui-dim);
+    border-radius: 6px;
+    padding: 12px 22px;
+    display: none;
+    flex-direction: column; align-items: center; gap: 7px;
+    min-width: 280px;
+  }
+  #word-panel.visible { display: flex; }
+  #word-panel-title { font-size: 9px; letter-spacing: 3px; color: var(--ui-dim); }
+  #word-avail { font-size: 13px; letter-spacing: 3px; color: #667; }
+  #word-display {
+    font-family: var(--font-title); font-size: 30px; font-weight: 700;
+    letter-spacing: 6px; min-width: 160px; text-align: center;
+    color: #fff; text-shadow: 0 0 20px rgba(0,255,204,0.3);
+    min-height: 42px; padding-bottom: 2px;
+    border-bottom: 2px solid var(--ui-dim);
+  }
+  #word-display.valid   { color: var(--success); text-shadow: 0 0 20px var(--success); border-bottom-color: var(--success); }
+  #word-display.invalid { color: var(--danger);  text-shadow: 0 0 20px var(--danger);  border-bottom-color: var(--danger); }
+  #word-btns { display: flex; gap: 8px; margin-top: 2px; }
+  .wbtn {
+    font-family: var(--font-hud); font-size: 10px; letter-spacing: 2px;
+    padding: 5px 14px; border: 1px solid var(--ui-dim); background: transparent;
+    color: var(--ui-bright); cursor: pointer; transition: all 0.15s;
+  }
+  .wbtn:hover { border-color: var(--letter-glow); color: var(--letter-glow); }
+  .wbtn.ok { border-color: var(--success); color: var(--success); }
+  .wbtn.ok:hover { background: rgba(0,255,136,0.1); }
+
+  #sidebar {
+    position: fixed; right: 14px; top: 72px; bottom: 155px; z-index: 10;
+    display: flex; flex-direction: column; gap: 5px; overflow-y: auto;
+    pointer-events: none;
+  }
+  .a-info {
+    background: rgba(5,14,31,0.85); border: 1px solid var(--ui-dim);
+    border-radius: 4px; padding: 5px 9px; font-size: 10px; color: var(--ui-bright);
+    letter-spacing: 1px; min-width: 118px;
+  }
+  .a-info.claimed { border-color: var(--letter-glow); color: var(--letter-glow); background: rgba(0,255,204,0.05); }
+  .a-info.danger  { border-color: var(--danger); color: var(--danger); }
+  .a-letters { font-size: 13px; font-weight: bold; letter-spacing: 3px; }
+
+  .screen {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(2,8,18,0.96); gap: 20px;
+  }
+  .screen.hidden { display: none; }
+  .screen-title {
+    font-family: var(--font-title); font-size: clamp(30px, 7vw, 60px);
+    font-weight: 900; letter-spacing: 6px; color: var(--letter-glow);
+    text-shadow: 0 0 40px var(--letter-glow); text-align:center;
+  }
+  .screen-sub { font-size: 13px; letter-spacing: 2px; color: var(--ui-bright); text-align: center; max-width: 500px; line-height: 2; }
+  .btn {
+    font-family: var(--font-title); font-size: 13px; letter-spacing: 4px;
+    padding: 13px 36px; border: 2px solid var(--letter-glow);
+    background: transparent; color: var(--letter-glow); cursor: pointer; transition: all 0.2s;
+  }
+  .btn:hover { background: var(--letter-glow); color: var(--bg); box-shadow: 0 0 30px var(--letter-glow); }
+  .btn.red { border-color: var(--danger); color: var(--danger); }
+  .btn.red:hover { background: var(--danger); color: var(--bg); }
+  .rules-box {
+    background: rgba(5,14,31,0.8); border: 1px solid var(--ui-dim);
+    padding: 16px 24px; max-width: 480px; font-size: 12px; line-height: 2.1;
+    color: var(--ui-bright); letter-spacing: 1px;
+  }
+  .rules-box h3 { font-family: var(--font-title); font-size: 10px; letter-spacing: 4px; color: var(--letter-glow); margin-bottom: 8px; }
+  .diff-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .diff-btn {
+    font-family: var(--font-hud); font-size: 11px; letter-spacing: 2px;
+    padding: 8px 20px; border: 1px solid var(--ui-dim); background: transparent;
+    color: var(--ui-bright); cursor: pointer; transition: all 0.2s;
+  }
+  .diff-btn:hover, .diff-btn.sel { border-color: var(--letter-glow); color: var(--letter-glow); background: rgba(0,255,204,0.04); }
+  #final-score { font-family: var(--font-title); font-size: 44px; color: var(--success); text-shadow: 0 0 30px var(--success); }
+  #final-score.bad { color: var(--danger); text-shadow: 0 0 30px var(--danger); }
+
+  #flash { position: fixed; inset: 0; z-index: 18; pointer-events: none; opacity: 0; transition: opacity 0.1s; }
+  #msg {
+    position: fixed; top: 42%; left: 50%; transform: translate(-50%,-50%); z-index: 16;
+    font-family: var(--font-title); font-size: clamp(20px,4vw,42px); font-weight: 900;
+    letter-spacing: 5px; text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+<canvas id="game-canvas"></canvas>
+
+
+<div id="hud">
+  <div id="title-hud">ASTEROIDELL</div>
+  <button id="menu-btn">MENU</button>
+  <div class="hud-stat"><div class="hud-label">min word</div><div class="hud-value" id="min-len-val">2+</div></div>
+  <div class="hud-stat" style="min-width:120px">
+    <div class="hud-label">EARTH HP</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div id="hp-bar-wrap" style="width:100px;height:10px;background:rgba(255,255,255,0.1);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,0.15)">
+        <div id="hp-bar" style="height:100%;width:100%;background:var(--success);border-radius:4px;transition:width 0.4s,background 0.4s"></div>
+      </div>
+      <div class="hud-value" id="lives-val" style="font-size:12px;min-width:36px">100</div>
+    </div>
+  </div>
+  <div class="hud-stat"><div class="hud-label">level</div><div class="hud-value" id="level-val">1</div></div>
+  <div class="hud-stat"><div class="hud-label">score</div><div class="hud-value" id="score-val">0</div></div>
+</div>
+
+<div id="active-challenge-badge"></div>
+<div id="sidebar"></div>
+
+<div id="word-panel">
+  <div id="word-panel-title">CLAIM A WORD — TYPE &amp; PRESS ENTER</div>
+  <div id="word-avail"></div>
+  <div id="word-display"></div>
+  <div id="word-btns">
+    <button class="wbtn" id="wclear">CLEAR</button>
+    <button class="wbtn ok" id="wconfirm">DESTROY ↵</button>
+    <button class="wbtn" id="wcancel">CANCEL</button>
+  </div>
+</div>
+
+
+<div id="instruct">SELECT A CARD TO PLAY · OR CLICK AN ASTEROID TO SPELL A WORD</div>
+<div id="hand-area">
+  <div id="hand-label">YOUR HAND — SELECT A CARD · CLICK ASTEROID TO PLAY · CLICK ASTEROID TO SPELL</div>
+  <div id="hand-cards"></div>
+  <div id="deck-info">DECK: — · DISCARD: —</div>
+</div>
+
+<div id="flash"></div>
+<div id="msg"></div>
+
+<!-- UPGRADE OVERLAY -->
+<div id="upgrade-overlay" class="hidden">
+  <div id="upgrade-title">LEVEL UP — CHOOSE AN UPGRADE</div>
+  <div id="upgrade-level-badge">LEVEL 1</div>
+  <div id="upgrade-cards"></div>
+</div>
+
+<!-- QUIT OVERLAY -->
+<div id="quit-overlay" class="hidden">
+  <div id="quit-title">ABANDON MISSION?</div>
+  <div id="quit-sub">YOUR PROGRESS WILL BE LOST</div>
+  <div class="quit-row">
+    <button class="btn red" id="quit-btn">QUIT TO MENU</button>
+    <button class="btn" id="resume-btn">RESUME [ESC]</button>
+  </div>
+</div>
+
+<!-- START SCREEN -->
+<div id="start-screen" class="screen">
+  <div class="screen-title">ASTEROIDELL</div>
+  <div class="screen-sub">PLAY CARDS ONTO ASTEROIDS TO BUILD WORDS AND DESTROY THEM.<br>SURVIVE AS LONG AS YOU CAN — 3 LIVES · ENDLESS WAVES.</div>
+  <div class="rules-box">
+    <h3>// HOW TO PLAY</h3>
+    Each card has <strong>two letters</strong> on it.<br>
+    <strong style="color:var(--letter-glow)">PLAY</strong> — Click a card in your hand, then click an asteroid to add those letters to it.<br>
+    <strong style="color:var(--letter-glow)">WORD</strong> — Click any asteroid to spell a word from its letters and destroy it.<br>
+    You can play cards and attempt words <strong>freely at any time</strong> — no turns, no waiting.<br><br>
+    Each word must be <strong>longer</strong> than the last.<br>
+    Every 3 words destroyed you advance a level — choose an upgrade and asteroids get faster.<br>
+    Earth has <strong>20 HP</strong>. Asteroids deal damage when they hit — bigger asteroids hurt more.
+  </div>
+  <div>
+    <div class="hud-label" style="text-align:center;margin-bottom:10px">DIFFICULTY</div>
+    <div class="diff-row">
+      <button class="diff-btn sel" data-speed="0.25" data-ast="3">CADET</button>
+      <button class="diff-btn" data-speed="0.45" data-ast="4">COMMANDER</button>
+      <button class="diff-btn" data-speed="0.75" data-ast="5">ADMIRAL</button>
+    </div>
+  </div>
+  <div id="word-load-status" style="font-size:10px;letter-spacing:2px;color:var(--ui-dim);min-height:16px">LOADING WORD LIST...</div>
+  <button class="btn" id="start-btn" disabled style="opacity:0.5">LAUNCH MISSION</button>
+</div>
+
+
+<!-- CHALLENGE SCREEN -->
+<div id="challenge-screen" class="screen hidden">
+  <div class="screen-title" style="color:var(--warn);font-size:clamp(22px,5vw,40px)">CHOOSE YOUR FATE</div>
+  <div class="screen-sub" style="font-size:12px">SELECT A STARTING CONDITION FOR THIS RUN</div>
+  <div id="challenge-grid"></div>
+  <button id="challenge-skip">SKIP — NO MODIFIER</button>
+</div>
+
+<!-- END SCREEN -->
+<div id="end-screen" class="screen hidden">
+  <div class="screen-title" id="end-title" style="color:var(--danger)">IMPACT!</div>
+  <div class="screen-sub" id="end-sub"></div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0">
+    <div style="font-size:10px;letter-spacing:3px;color:var(--ui-dim)">FINAL SCORE</div>
+    <div id="final-score" style="font-family:var(--font-title);font-size:60px;font-weight:900;letter-spacing:4px;color:var(--letter-glow);text-shadow:0 0 30px var(--letter-glow)">0</div>
+  </div>
+  <div id="end-stats" style="font-size:11px;letter-spacing:2px;color:var(--ui-dim);text-align:center;line-height:2"></div>
+  <div style="display:flex;gap:14px;margin-top:8px">
+    <button class="btn" id="restart-btn">PLAY AGAIN</button>
+    <button class="btn" id="end-menu-btn" style="border-color:var(--ui-dim);color:var(--ui-dim)">MAIN MENU</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ELL DECK — each card has 2 letters + a border pattern
+// ============================================================
+const PATTERNS = ['dot','dash','wave','cross','zigzag','grid','diamond','circle'];
+const PAT_COLOR = { dot:'#ff6b35', dash:'#f7d07a', wave:'#88d498', cross:'#4499ff', zigzag:'#c084fc', grid:'#fbbf24', diamond:'#f472b6', circle:'#67e8f9' };
+
+// ~72 card deck with letter pair + pattern
+const RAW_PAIRS = [
+  ['A','B'],['A','C'],['A','D'],['A','E'],['A','F'],['A','G'],['A','H'],['A','L'],['A','M'],['A','N'],
+  ['A','P'],['A','R'],['A','S'],['A','T'],['A','W'],['A','X'],['A','Y'],['A','Z'],
+  ['E','B'],['E','C'],['E','D'],['E','F'],['E','G'],['E','H'],['E','L'],['E','M'],['E','N'],['E','R'],
+  ['E','S'],['E','T'],['E','V'],['E','W'],['E','X'],['E','Y'],
+  ['I','B'],['I','C'],['I','D'],['I','F'],['I','G'],['I','L'],['I','M'],['I','N'],['I','R'],
+  ['I','S'],['I','T'],['I','V'],
+  ['O','B'],['O','C'],['O','D'],['O','F'],['O','G'],['O','L'],['O','M'],['O','N'],['O','R'],
+  ['O','S'],['O','T'],['O','W'],['O','X'],['O','Y'],
+  ['U','B'],['U','D'],['U','G'],['U','L'],['U','M'],['U','N'],['U','P'],['U','R'],['U','S'],['U','T'],
+  ['S','T'],['N','G'],['R','S'],['L','T'],['P','R'],['T','H'],['C','H'],['S','H'],['W','H'],
+  ['P','H'],['G','H'],['C','K'],['L','Y'],['R','Y'],['N','D'],['Q','U'],['T','R'],['D','R'],
+];
+
+function buildDeck() {
+  return RAW_PAIRS.map((letters, i) => ({
+    id: i,
+    letters: [...letters],
+    pattern: PATTERNS[i % PATTERNS.length],
+    color: PAT_COLOR[PATTERNS[i % PATTERNS.length]],
+  }));
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ============================================================
+// WORD LIST
+// ============================================================
+// Word list loaded from Wordnik open-source list at runtime
+let WORDS = new Set();
+let wordsLoaded = false;
+
+async function loadWordList() {
+  const status = document.getElementById('word-load-status');
+  try {
+    // Try jsDelivr (CORS-friendly GitHub CDN), then unpkg word-list as backup
+  const urls = [
+    'https://cdn.jsdelivr.net/gh/wordnik/wordlist@main/wordlist-20210729.txt',
+    'https://cdn.jsdelivr.net/npm/word-list/words.txt',
+  ];
+  let text = null;
+  for (const url of urls) {
+    try {
+      const r = await fetch(url);
+      if (r.ok) { text = await r.text(); break; }
+    } catch(e) { /* try next */ }
+  }
+  if (!text) throw new Error('All sources failed');
+    // Each line is a quoted word like "cape" — strip quotes, lowercase, filter 2-8 letters only
+    WORDS = new Set(
+      text.split('\n')
+        .map(l => l.trim().replace(/^"|"$/g, '').toLowerCase())
+        .filter(w => w.length >= 2 && w.length <= 8 && /^[a-z]+$/.test(w))
+    );
+    wordsLoaded = true;
+    if (status) status.textContent = '';
+    console.log('Wordnik list loaded:', WORDS.size, 'words');
+  } catch(e) {
+    console.warn('Wordnik fetch failed, using fallback:', e);
+    // Fallback to a basic set so game still works offline
+    WORDS = new Set('an at am as be by do go he if in is it me my no of on or so to up us we ace act add age ago aid aim air ale all and ant ape arc are arm art ask ate awe axe bad bag ban bar bat bay bed beg bet bid big bin bit bow box boy bud bug bun bus but buy cab can cap car cat cob cod cop cot cow cry cup cut dab dad dam day den dew did dig dim dip dog dot dry dug dye ear eat egg ego elf elm end era eve ewe eye fad fan far fat fax fed few fig fin fit fix fly foe fog for fox fry fun fur gag gap gas gel gem get gig gin god got gum gun gut guy gym had ham has hat hay hem hen her hew hex hey hid him hip his hit hog hop hot how hub hug hum hut ice ill imp ink inn ion ivy jab jam jar jaw jet jig job jog joy jug jut keg key kid kin kit lab lag lam lap law lay lea led leg let lid lip lit log lot low mad man map mar mat may men met mob mop mud mug mum nab nag nap nay net new nil nip nod nor not now nun nut oak oar oat odd ode off old one opt orb ore our out owe owl own pad pal pan pat paw pay peg pen per pet pie pig pin pit pod pop pot pub pun pup put ram ran rap rat raw ray red ref rep rib rid rig rim rip rob rod rot row rub rug rum run rut rye sad sag sap sat saw say sea set sew sin sip sir sit six sob son sow sub sue sum sun tab tan tap tar tax tea ten tie tin tip toe ton top toy tub tug use van vat vet vow wad war was wax web wed wig win wit woe won wry yam yap yew you zap zoo able ache acid also area army auto back bake ball band bank bare bark base bath bead beam bean bear beat bell belt bend best bill bird bite blow blue bold bolt bone book boom boot bore born both burn byte cage cake call calm came cane cape card care cart case cash cast cave cell chat chin chip city clam clap clay clip club clue coat code cold come cone cook cool cord core corn cost crab crew crop cube cure curl cute dale dare dark data date dawn dead deal dean dear deck deed deep dent desk dial dice dime dire dirt dish disk dock dome done door dose dove down drag draw drip drop drum dump dune dusk dust duty each earl earn ease east emit even ever evil exam face fact fade fail fair fake fall fame fare farm fast fate fear feat feel feet fell felt file fill film find fine fire firm fish fist flat fled flew flex flip flow foam fold folk fond food fool foot ford fork form fort foul four free frog from fuel full fume fund fury fuse gain gale game gang gate gave gaze gear gene gift girl give glad glow glue goal gold golf gone good gown grab gram grin grip grit grow gulf gust hail hair half hall halt hand hang harm harp hash hate have haze head heal heap heat heel help herb here hide high hill hint hire hold hole home hood hook hope horn hose host hour huge hull hunt hurl idea idle inch iris isle itch jade jail jazz jest join joke jolt jump junk just keen keep kick kind king kiss knot know lack lace lamb lame lamp land lane last late lead leaf lean leap lend less levy lick life lift like lime line link lion list live load loan lock loft lone long look loom loop lose lost love luck lump lung lure made mail main make male mall mane many mark mast mate math maze meal mean meat melt memo mend mesh mild mile milk mill mind mine mint mist mode mole monk moon moor more moss most move muse must mute nail name near neat neck need nest news next nice nine node none norm nose note noun nude oath obey once only open oven over pace page pain pair pale palm park part past path pave peak peel pest pick pile pine pink pipe plan plot plow plum plus poem pole pond pool pore port pose post pour prey prod pull pump pure push race rack rage raid rail rain rank rant rash rate read real reed reef reel rely rent rest rice rich ride ring riot rise risk road roar robe rock role roll roof room root rope rose ruin rule rush rust safe sage sail sake sale salt same sand sane save scan scar seal seam sear seat seed seek seem self sell send sent shed shin ship shop shot show shut sick sigh sign silk sing sink site size skin skip slam slim slip slot slow snap snow soap sock soft sold sole some song sore sort soul soup sour spin spot star stay stem step stew stir stop stun suit sung surf swan swap sway swim tack tall tame tank tape task team tear tell tend tent test text than that them then they thin this tick tide tile till time tire told toll tomb tone tool tore torn toss tour town trap tree trim trio trip true tuck tune tusk twin type ugly undo unit upon used vain vary veil vein very vest view vile vine void vote wade wage wait wake walk wall wand want ward warm warn wash wave weak well went west what when wide wife wild will wind wine wing wink wire wish with wolf wood wool word wore work worm worn wrap yard yarn yawn year yell your zeal zero zinc zone zoom boon soon noon goon loon moon doom nook took hoot loot moot soot toot mood stool drool spool boom loom room gloom bloom groom fool cool pool tool wool food good wood flood blood stood brood cape gape tape drape shape grape brace trace place space grace lace race face pace'.split(' '));
+    wordsLoaded = true;
+    if (status) status.textContent = '';
+  }
+}
+
+function isValid(w) { return WORDS.has(w.toLowerCase()); }
+
+function canForm(word, pool) {
+  const avail = [...pool];
+  for (const ch of word.toUpperCase()) {
+    const i = avail.indexOf(ch);
+    if (i === -1) return false;
+    avail.splice(i, 1);
+  }
+  return true;
+}
+
+// ============================================================
+// CANVAS
+// ============================================================
+const SC = document.getElementById('stars-canvas'), SC2 = SC.getContext('2d');
+const GC = document.getElementById('game-canvas'),  GC2 = GC.getContext('2d');
+
+let stars = [];
+function resize() {
+  SC.width = GC.width = window.innerWidth;
+  SC.height = GC.height = window.innerHeight;
+  buildStars();
+}
+window.addEventListener('resize', resize);
+resize();
+
+function buildStars() {
+  stars = [];
+  for (let i = 0; i < 220; i++) stars.push({ x: Math.random()*SC.width, y: Math.random()*SC.height, r: Math.random()*1.4, a: 0.3+Math.random()*0.7, t: Math.random()*Math.PI*2 });
+}
+function tickStars() {
+  SC2.clearRect(0, 0, SC.width, SC.height);
+  stars.forEach(s => {
+    s.t += 0.007;
+    const a = s.a * (0.5 + 0.5 * Math.sin(s.t));
+    SC2.beginPath(); SC2.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    SC2.fillStyle = `rgba(255,255,255,${a})`; SC2.fill();
+  });
+}
+
+// Earth drawn onto game canvas each frame as a thin curved horizon strip
+function drawEarth() {
+  const c = GC2;
+  const W = GC.width;
+  const ey = earthY();
+  const cx = W / 2;
+  const r = W * 1.8;           // huge radius so only a shallow arc is visible
+  const arcH = 50;             // px of earth arc visible above ey
+  const cy = ey + r - arcH;   // planet centre far below
+
+  // Atmosphere glow
+  const atm = c.createRadialGradient(cx, cy, r - 20, cx, cy, r + 70);
+  atm.addColorStop(0, 'rgba(40,120,255,0.5)');
+  atm.addColorStop(1, 'rgba(0,10,60,0)');
+  c.beginPath(); c.arc(cx, cy, r + 70, 0, Math.PI * 2);
+  c.fillStyle = atm; c.fill();
+
+  // Clip to a thin strip so nothing above ey is drawn
+  c.save();
+  c.beginPath();
+  c.rect(0, ey - arcH - 10, W, arcH + 60);
+  c.clip();
+
+  // Ocean
+  const ocean = c.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
+  ocean.addColorStop(0, '#55aaff');
+  ocean.addColorStop(0.6, '#1155bb');
+  ocean.addColorStop(1, '#001144');
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2);
+  c.fillStyle = ocean; c.fill();
+
+  // Land patches near the top of the arc
+  [[-0.3, -1.0, 0.09, 0.018], [0.1, -1.0, 0.11, 0.02], [0.42, -0.998, 0.07, 0.014]].forEach(([dx, dy, rw, rh]) => {
+    c.beginPath();
+    c.ellipse(cx + dx * r, cy + dy * r, rw * r, rh * r, 0, 0, Math.PI * 2);
+    c.fillStyle = '#3a8f3a'; c.fill();
+  });
+
+  // Highlight
+  const hi = c.createLinearGradient(0, ey - arcH, 0, ey + 20);
+  hi.addColorStop(0, 'rgba(180,220,255,0.25)');
+  hi.addColorStop(1, 'rgba(180,220,255,0)');
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2);
+  c.fillStyle = hi; c.fill();
+
+  c.restore();
+
+  // Horizon line
+  c.save();
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2);
+  c.strokeStyle = 'rgba(140,200,255,0.8)'; c.lineWidth = 1.5; c.stroke();
+  c.restore();
+}
+
+function earthY() { return window.innerHeight - 148; }
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let G = {};
+
+// ============================================================
+// STARTING CHALLENGES
+// ============================================================
+const ALL_CHALLENGES = [
+  // ── CURSES (harder, but feel epic) ─────────────────────────
+  {
+    id: 'min3',      type: 'curse', icon: '📏',
+    name: 'VERBOSE ONLY',
+    desc: 'Minimum word length starts at 3 instead of 2.',
+    effect: '+CHALLENGE',
+    apply(g) { g.minLength = 3; }
+  },
+  {
+    id: 'fast',      type: 'curse', icon: '☄️',
+    name: 'HYPERSONIC',
+    desc: 'Asteroids fall 40% faster from the start.',
+    effect: '↑ FALL SPEED ×1.4',
+    apply(g) { g.spawnSpeed *= 1.4; g.asteroids.forEach(a => a.speed *= 1.4); }
+  },
+  {
+    id: 'less_hand', type: 'curse', icon: '🤏',
+    name: 'SHORT HANDED',
+    desc: 'Start with only 2 cards in hand instead of 3.',
+    effect: 'HAND SIZE −1',
+    apply(g) { g.handSize = 2; if (g.hand.length > 2) g.hand.splice(2); renderHand(); }
+  },
+  {
+    id: 'two_lives', type: 'curse', icon: '💔',
+    name: 'FRAGILE EARTH',
+    desc: 'Start with only 12 HP instead of 20.',
+    effect: 'START HP: 12',
+    apply(g) { g.hp = 12; refreshHUD(); }
+  },
+  {
+    id: 'min4',      type: 'curse', icon: '🔒',
+    name: 'LEXICON LOCK',
+    desc: 'Minimum word length starts at 4.',
+    effect: '+++ CHALLENGE',
+    apply(g) { g.minLength = 4; }
+  },
+  {
+    id: 'no_skip',   type: 'curse', icon: '⛔',
+    name: 'NO RETREAT',
+    desc: 'You cannot skip the word phase — you must attempt a word each turn.',
+    effect: 'SKIP DISABLED',
+    apply(g) { g.noSkip = true; }
+  },
+  {
+    id: 'more_asts', type: 'curse', icon: '🌑',
+    name: 'ASTEROID STORM',
+    desc: 'Start with one extra asteroid on screen.',
+    effect: '+1 STARTING ASTEROID',
+    apply(g) { spawnNewAsteroid(); }
+  },
+  // ── BOONS (easier start) ─────────────────────────────────
+  {
+    id: 'slow',      type: 'boon', icon: '🧊',
+    name: 'COLD FRONT',
+    desc: 'Asteroids fall 20% slower to start.',
+    effect: '↓ FALL SPEED ×0.8',
+    apply(g) { g.spawnSpeed *= 0.8; g.asteroids.forEach(a => a.speed *= 0.8); }
+  },
+  {
+    id: 'extra_life_start', type: 'boon', icon: '❤️',
+    name: 'BACKUP SYSTEMS',
+    desc: 'Start with 28 HP instead of 20.',
+    effect: 'START HP: 28',
+    apply(g) { g.hp = 28; refreshHUD(); }
+  },
+  {
+    id: 'big_hand',  type: 'boon', icon: '🃏',
+    name: 'FULL GRIP',
+    desc: 'Start with 4 cards in hand instead of 3.',
+    effect: 'HAND SIZE +1',
+    apply(g) { g.handSize = 4; dealCard(); renderHand(); }
+  },
+  {
+    id: 'pushed_back', type: 'boon', icon: '🌊',
+    name: 'TIDAL PUSH',
+    desc: 'All asteroids start further away from Earth.',
+    effect: 'ASTEROIDS PUSHED BACK',
+    apply(g) { g.asteroids.forEach(a => { a.y = Math.min(a.y, 60); }); }
+  },
+  {
+    id: 'reset_len', type: 'boon', icon: '🔄',
+    name: 'EASY OPENER',
+    desc: 'Word length never escalates above 4 for the first 5 words.',
+    effect: 'SOFT START',
+    apply(g) { g.softStart = 5; }
+  },
+  // ── WILD (double-edged) ───────────────────────────────────
+  {
+    id: 'glass_cannon', type: 'wild', icon: '💎',
+    name: 'GLASS CANNON',
+    desc: 'All words score 2× points, but you start with only 8 HP.',
+    effect: 'SCORE ×2 · START HP: 8',
+    apply(g) { g.hp = 8; g.riskMult = (g.riskMult||1) * 2; refreshHUD(); }
+  },
+  {
+    id: 'turbo_xp',  type: 'wild', icon: '⚡',
+    name: 'TURBO MODE',
+    desc: 'Level up every 2 words instead of 3 — upgrades come fast, so does danger.',
+    effect: 'LEVEL RATE ×1.5',
+    apply(g) { g.levelEvery = 2; }
+  },
+  {
+    id: 'scrambled', type: 'wild', icon: '🎲',
+    name: 'SCRAMBLED SIGNALS',
+    desc: 'Letters on asteroids are shuffled each time a card is played.',
+    effect: 'LETTERS SHUFFLE ON PLAY',
+    apply(g) { g.scrambled = true; }
+  },
+];
+
+let G_pendingChallenge = null;
+
+function showChallengeScreen() {
+  const pool = [...ALL_CHALLENGES];
+  const picks = [];
+  while (picks.length < 3 && pool.length > 0) {
+    const i = Math.floor(Math.random() * pool.length);
+    picks.push(pool.splice(i, 1)[0]);
+  }
+
+  const grid = document.getElementById('challenge-grid');
+  grid.innerHTML = '';
+  picks.forEach(ch => {
+    const div = document.createElement('div');
+    div.className = 'challenge-card ' + ch.type;
+    div.innerHTML = `
+      <div class="ch-icon">${ch.icon}</div>
+      <div class="ch-type ${ch.type}">${ch.type}</div>
+      <div class="ch-name">${ch.name}</div>
+      <div class="ch-desc">${ch.desc}</div>
+      <div class="ch-effect">${ch.effect}</div>
+    `;
+    div.addEventListener('click', () => selectChallenge(ch));
+    grid.appendChild(div);
+  });
+
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('challenge-screen').classList.remove('hidden');
+}
+
+function selectChallenge(ch) {
+  G_pendingChallenge = ch;
+  document.getElementById('challenge-screen').classList.add('hidden');
+  startGame();
+}
+
+function skipChallenge() {
+  G_pendingChallenge = null;
+  document.getElementById('challenge-screen').classList.add('hidden');
+  startGame();
+}
+
+function startGame() {
+  document.getElementById('start-screen').classList.add('hidden');
+  newGame();
+  // Apply challenge after game state is initialised
+  if (G_pendingChallenge) {
+    G_pendingChallenge.apply(G);
+    // Show badge
+    const badge = document.getElementById('active-challenge-badge');
+    badge.textContent = G_pendingChallenge.icon + ' ' + G_pendingChallenge.name;
+    badge.style.display = 'block';
+    badge.style.color = G_pendingChallenge.type === 'curse' ? 'var(--danger)' : G_pendingChallenge.type === 'boon' ? 'var(--success)' : 'var(--warn)';
+    badge.style.borderLeft = '2px solid ' + (G_pendingChallenge.type === 'curse' ? 'var(--danger)' : G_pendingChallenge.type === 'boon' ? 'var(--success)' : 'var(--warn)');
+    refreshHUD();
+  } else {
+    document.getElementById('active-challenge-badge').style.display = 'none';
+  }
+}
+
+function newGame() {
+  const btn = document.querySelector('.diff-btn.sel');
+  const fallSpeed = parseFloat(btn.dataset.speed);
+  const astCount  = parseInt(btn.dataset.ast);
+
+  G = {
+    deck: shuffle(buildDeck()),
+    discard: [],
+    hand: [],
+    handSize: 5,
+    asteroids: [],
+    score: 0,
+    minLength: 2,
+    usedWords: new Set(),
+    gameOver: false,
+    hp: 20,
+    level: 1,
+    wordsDestroyed: 0,
+    activeCap: astCount,
+    spawnSpeed: parseFloat(btn.dataset.speed),
+    selectedCardIdx: null,
+    claimAsteroidId: null,
+    claimWord: '',
+    fallSpeed,
+    astCount,
+    scoreBoost: 0,
+    riskMult: 1,
+    noSkip: false,
+    scrambled: false,
+    softStart: 0,
+    levelEvery: 3,
+    frameId: null,
+    lastTs: 0,
+  };
+
+  for (let i = 0; i < astCount; i++) spawnAsteroid(i);
+  for (let i = 0; i < G.handSize; i++) dealCard();
+
+  refreshUI();
+  renderHand(); refreshHUD(); renderSidebar();
+  G.frameId = requestAnimationFrame(loop);
+}
+
+let astId = 0;
+function spawnAsteroid(slotIndex) {
+  // Pull a card with a vowel to be the "A card" anchor
+  let cardIdx = G.deck.findIndex(c => c.letters.some(l => 'AEIOU'.includes(l)));
+  if (cardIdx === -1) cardIdx = G.deck.length - 1;
+  const anchor = G.deck.splice(cardIdx, 1)[0];
+
+  const spacing = window.innerWidth / (G.astCount + 1);
+  G.asteroids.push({
+    id: ++astId,
+    pattern: anchor.pattern,
+    patternColor: anchor.color,
+    cards: [anchor],
+    x: spacing * (slotIndex + 1),
+    y: 80 + slotIndex * 160,
+    speed: G.fallSpeed * (0.7 + Math.random() * 0.6),
+    wobble: Math.random() * Math.PI * 2,
+    wobbleAmp: 0.3 + Math.random() * 0.8,
+    active: true,
+    exploding: false,
+    explodeTimer: 0,
+    particles: [],
+  });
+}
+
+function dealCard() {
+  if (G.deck.length === 0) {
+    if (G.discard.length === 0) return;
+    G.deck = shuffle([...G.discard]);
+    G.discard = [];
+  }
+  if (G.deck.length > 0) G.hand.push(G.deck.pop());
+}
+
+function pool(ast) {
+  const p = [];
+  ast.cards.forEach(c => p.push(...c.letters));
+  return p;
+}
+
+// ============================================================
+// PHASES
+// ============================================================
+
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function playCard(asteroidId) {
+  if (G.selectedCardIdx === null) return;
+  const ast = G.asteroids.find(a => a.id === asteroidId && a.active && !a.exploding);
+  if (!ast) return;
+
+  const card = G.hand.splice(G.selectedCardIdx, 1)[0];
+  ast.cards.push(card);
+  G.selectedCardIdx = null;
+
+  // Scrambled challenge: shuffle letters on all asteroids when a card is played
+  if (G.scrambled) {
+    G.asteroids.filter(a => a.active && !a.exploding).forEach(a2 => {
+      for (let i = a2.cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a2.cards[i], a2.cards[j]] = [a2.cards[j], a2.cards[i]];
+      }
+    });
+  }
+  // Draw replacement immediately
+  while (G.hand.length < G.handSize) dealCard();
+
+  renderHand();
+  renderSidebar();
+  refreshHUD();
+  showMsg('CARD PLAYED!', '#4499ff');
+}
+
+function openClaim(asteroidId) {
+  const ast = G.asteroids.find(a => a.id === asteroidId && a.active && !a.exploding);
+  if (!ast) return;
+  G.claimAsteroidId = asteroidId;
+  G.claimWord = '';
+  const p = pool(ast);
+  document.getElementById('word-avail').textContent = 'LETTERS: ' + p.join(' · ');
+  document.getElementById('word-display').textContent = '';
+  document.getElementById('word-display').className = '';
+  document.getElementById('word-panel').classList.add('visible');
+}
+
+function confirmClaim() {
+  const word = G.claimWord.trim();
+  if (!word) return;
+  const ast = G.asteroids.find(a => a.id === G.claimAsteroidId && a.active && !a.exploding);
+  if (!ast) return;
+
+  if (word.length < G.minLength) { showMsg(`NEED ${G.minLength}+ LETTERS!`, '#ffcc44'); return; }
+  const p = pool(ast);
+  if (!canForm(word, p)) { showMsg('WRONG LETTERS!', '#ff3c3c'); return; }
+  if (!isValid(word)) { showMsg('NOT A WORD!', '#ff3c3c'); return; }
+  if (G.usedWords.has(word.toLowerCase())) { showMsg('ALREADY USED!', '#ffcc44'); return; }
+
+  G.usedWords.add(word.toLowerCase());
+  ast.cards.forEach(c => G.discard.push(c));
+  let pts = word.length * 10 + Math.max(0, word.length - G.minLength) * 6;
+  if (G.scoreBoost > 0) { pts *= 2; G.scoreBoost--; }
+  if (G.riskMult) pts = Math.round(pts * G.riskMult);
+  G.score += pts;
+  if (G.softStart > 0) { G.softStart--; G.minLength = Math.min(G.minLength + 1, 4); } else { G.minLength += 1; }
+  G.wordsDestroyed += 1;
+  if (G.wordsDestroyed % (G.levelEvery || 3) === 0) setTimeout(levelUp, 400);
+  document.getElementById('word-panel').classList.remove('visible');
+
+  explode(ast, word);
+  refreshHUD();
+
+  renderHand(); refreshHUD(); renderSidebar();
+}
+
+
+
+function clickAsteroid(id) {
+  if (!G.gameOver && !G.paused) {
+    if (G.selectedCardIdx !== null) { playCard(id); }
+    else { openClaim(id); }
+  }
+}
+
+// ============================================================
+// ASTEROID RADIUS
+// ============================================================
+function astRadius(ast) { return 40 + Math.min(ast.cards.length, 8) * 5; }
+
+function spawnNewAsteroid() {
+  // Pull an anchor card
+  if (G.deck.length === 0) {
+    if (G.discard.length === 0) return;
+    G.deck = shuffle([...G.discard]); G.discard = [];
+  }
+  let cardIdx = G.deck.findIndex(cd => cd.letters.some(l => 'AEIOU'.includes(l)));
+  if (cardIdx === -1) cardIdx = G.deck.length - 1;
+  const anchor = G.deck.splice(cardIdx, 1)[0];
+
+  // Pick an x position away from existing active asteroids
+  const active = G.asteroids.filter(a => a.active && !a.exploding);
+  let x, tries = 0;
+  do {
+    x = 60 + Math.random() * (GC.width - 120);
+    tries++;
+  } while (tries < 20 && active.some(a => Math.abs(a.x - x) < 80));
+
+  G.asteroids.push({
+    id: ++astId,
+    pattern: anchor.pattern,
+    patternColor: anchor.color,
+    cards: [anchor],
+    x,
+    y: -60,
+    speed: G.spawnSpeed * (0.7 + Math.random() * 0.6),
+    wobble: Math.random() * Math.PI * 2,
+    wobbleAmp: 0.3 + Math.random() * 0.8,
+    active: true,
+    exploding: false,
+    explodeTimer: 0,
+    particles: [],
+  });
+}
+
+// ── ALL POSSIBLE UPGRADES ────────────────────────────────────
+const ALL_UPGRADES = [
+  {
+    id: 'extra_life',    icon: '❤️',  name: 'EMERGENCY SHIELD',
+    desc: 'Repair Earth for +5 HP (max 30).',
+    rarity: 'rare',
+    apply() { G.hp = Math.min(G.hp + 5, 30); refreshHUD(); }
+  },
+  {
+    id: 'slow_all',      icon: '🧊',  name: 'DEEP FREEZE',
+    desc: 'All asteroids slow down by 25%.',
+    rarity: 'common',
+    apply() { G.asteroids.forEach(a => { if (a.active) a.speed *= 0.75; }); G.spawnSpeed *= 0.75; }
+  },
+  {
+    id: 'clear_card',    icon: '✂️',  name: 'LASER TRIM',
+    desc: 'Remove 1 random letter from the most-loaded asteroid.',
+    rarity: 'common',
+    apply() {
+      const heavy = G.asteroids.filter(a => a.active && !a.exploding && a.cards.length > 1)
+        .sort((a,b) => b.cards.length - a.cards.length)[0];
+      if (heavy) { G.discard.push(heavy.cards.pop()); }
+    }
+  },
+  {
+    id: 'extra_card',    icon: '🃏',  name: 'DEEP RESERVES',
+    desc: 'Permanently draw +1 extra card each turn.',
+    rarity: 'rare',
+    apply() { G.handSize += 1; while (G.hand.length < G.handSize) dealCard(); renderHand(); }
+  },
+  {
+    id: 'word_reset',    icon: '🔄',  name: 'FREQUENCY RESET',
+    desc: 'Drop the minimum word length back by 2.',
+    rarity: 'epic',
+    apply() { G.minLength = Math.max(2, G.minLength - 2); refreshHUD(); }
+  },
+  {
+    id: 'nuke',          icon: '💥',  name: 'ORBITAL STRIKE',
+    desc: 'Instantly destroy the asteroid closest to Earth.',
+    rarity: 'epic',
+    apply() {
+      const closest = G.asteroids.filter(a => a.active && !a.exploding)
+        .sort((a,b) => b.y - a.y)[0];
+      if (closest) { closest.cards.forEach(cd => G.discard.push(cd)); explode(closest, 'STRIKE'); }
+    }
+  },
+  {
+    id: 'score_boost',   icon: '⭐',  name: 'SCORE MULTIPLIER',
+    desc: 'Next 5 words score double points.',
+    rarity: 'common',
+    apply() { G.scoreBoost = (G.scoreBoost || 0) + 5; }
+  },
+  {
+    id: 'push_back',     icon: '🌊',  name: 'GRAVITY PULSE',
+    desc: 'Push all asteroids 20% back up the screen.',
+    rarity: 'rare',
+    apply() {
+      G.asteroids.forEach(a => { if (a.active && !a.exploding) a.y = Math.max(-60, a.y * 0.8); });
+    }
+  },
+  {
+    id: 'vacuum',        icon: '🌀',  name: 'VOID VACUUM',
+    desc: 'Shuffle all letters on all asteroids back into the deck.',
+    rarity: 'epic',
+    apply() {
+      G.asteroids.forEach(a => {
+        if (!a.active || a.exploding || a.cards.length <= 1) return;
+        while (a.cards.length > 1) G.discard.push(a.cards.pop());
+      });
+    }
+  },
+  {
+    id: 'speed_up_score', icon: '🎯', name: 'RISK TAKER',
+    desc: 'Asteroids fall 20% faster, but every word scores 50% more.',
+    rarity: 'rare',
+    apply() { G.spawnSpeed *= 1.2; G.asteroids.forEach(a => { if(a.active) a.speed *= 1.2; }); G.riskMult = (G.riskMult||1) * 1.5; }
+  },
+];
+
+function getRandomUpgrades(n) {
+  const pool = [...ALL_UPGRADES];
+  const result = [];
+  while (result.length < n && pool.length > 0) {
+    const i = Math.floor(Math.random() * pool.length);
+    result.push(pool.splice(i, 1)[0]);
+  }
+  return result;
+}
+
+function levelUp() {
+  G.level += 1;
+  // Increase difficulty: speed up slightly, allow more active asteroids
+  G.spawnSpeed *= 1.12;
+  G.activeCap = Math.min(G.astCount + Math.floor(G.level / 2), 8);
+  flashScreen('#ffcc44');
+
+  // Pause game and show upgrade screen
+  G.paused = true;
+  document.getElementById('upgrade-level-badge').textContent = 'LEVEL ' + G.level;
+  const upgrades = getRandomUpgrades(3);
+  const container = document.getElementById('upgrade-cards');
+  container.innerHTML = '';
+  upgrades.forEach(upg => {
+    const div = document.createElement('div');
+    div.className = 'upgrade-card';
+    div.innerHTML = `
+      <div class="upgrade-icon">${upg.icon}</div>
+      <div class="upgrade-name">${upg.name}</div>
+      <div class="upgrade-desc">${upg.desc}</div>
+      <div class="upgrade-rarity rarity-${upg.rarity}">${upg.rarity.toUpperCase()}</div>
+    `;
+    div.addEventListener('click', () => applyUpgrade(upg));
+    container.appendChild(div);
+  });
+  document.getElementById('upgrade-overlay').classList.remove('hidden');
+}
+
+function applyUpgrade(upg) {
+  document.getElementById('upgrade-overlay').classList.add('hidden');
+  upg.apply();
+  G.paused = false;
+  // Spawn a fresh asteroid after upgrade
+  setTimeout(() => { if (!G.gameOver) spawnNewAsteroid(); }, 500);
+  showMsg(upg.name + '!', '#ffcc44');
+}
+
+// ============================================================
+// EXPLOSIONS / IMPACT
+// ============================================================
+function explode(ast, word) {
+  ast.exploding = true;
+  ast.explodeTimer = 0;
+  ast.particles = [];
+  for (let i = 0; i < 28; i++) {
+    const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
+    ast.particles.push({ x:ast.x, y:ast.y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1, r:3+Math.random()*7, color:['#c49a4a','#ff8800','#ffcc44','#fff','#00ffcc'][Math.floor(Math.random()*5)], alpha:1 });
+  }
+  showMsg(word.toUpperCase() + '!', '#00ffcc');
+  flashScreen('#00ffcc');
+}
+
+function impact(ast) {
+  if (G.gameOver) return;
+  ast.active = false;
+  ast.cards.forEach(card => G.discard.push(card));
+  // Damage scales with asteroid size: 10 base + 5 per extra card
+  const dmg = 5 + (ast.cards.length - 1) * 2;
+  G.hp = Math.max(0, G.hp - dmg);
+  flashScreen('#ff3c3c');
+  showMsg(`IMPACT! −${dmg} HP`, '#ff3c3c');
+  refreshHUD();
+  if (G.hp <= 0) {
+    setTimeout(loseGame, 600);
+    return;
+  }
+  setTimeout(() => {
+    if (!G.gameOver) spawnNewAsteroid();
+  }, 1200);
+}
+
+// ============================================================
+// RENDER LOOP
+// ============================================================
+function loop(ts) {
+  if (G.gameOver) return;
+  if (G.paused) { G.frameId = requestAnimationFrame(loop); return; }
+  const dt = Math.min((ts - G.lastTs) / 16.7, 3);
+  G.lastTs = ts;
+
+  tickStars();
+  GC2.clearRect(0, 0, GC.width, GC.height);
+  drawEarth();
+
+  const ground = earthY();
+
+  G.asteroids.forEach(ast => {
+    if (!ast.active) return;
+    if (ast.exploding) {
+      ast.explodeTimer++;
+      ast.particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.alpha-=0.03; });
+      drawExplosion(ast);
+      if (ast.explodeTimer > 36) {
+        ast.active = false;
+        // Endless mode: spawn a replacement when an asteroid is destroyed
+        if (!G.gameOver) setTimeout(() => { if (!G.gameOver) spawnNewAsteroid(); }, 800);
+      }
+      return;
+    }
+
+    // Passive drift
+    ast.y += ast.speed * dt;
+    ast.wobble += 0.007;
+    ast.x += Math.sin(ast.wobble) * ast.wobbleAmp * 0.12;
+    ast.x = Math.max(55, Math.min(GC.width - 55, ast.x));
+
+    if (ast.y >= ground) { impact(ast); return; }
+
+    const claimable = G.claimAsteroidId === ast.id;
+    const clickable = G.selectedCardIdx !== null && !claimable;
+    const danger = ast.y > ground * 0.65 && ast.y > 0;
+    drawAsteroid(ast, claimable, danger, clickable);
+  });
+
+  G.frameId = requestAnimationFrame(loop);
+}
+
+function drawAsteroid(ast, isTarget, isDanger, clickHint) {
+  const r = astRadius(ast);
+  const c = GC2;
+  c.save(); c.translate(ast.x, ast.y);
+
+  if (isTarget) {
+    c.beginPath(); c.arc(0,0,r+16,0,Math.PI*2);
+    c.strokeStyle='rgba(0,255,204,0.5)'; c.lineWidth=2.5; c.stroke();
+  }
+  if (isDanger) {
+    const p = 0.35 + 0.4 * Math.sin(Date.now()*0.008);
+    c.beginPath(); c.arc(0,0,r+10,0,Math.PI*2);
+    c.strokeStyle=`rgba(255,60,60,${p})`; c.lineWidth=3; c.stroke();
+  }
+  if (clickHint && !isTarget && !isDanger) {
+    c.beginPath(); c.arc(0,0,r+12,0,Math.PI*2);
+    c.strokeStyle='rgba(255,200,60,0.4)'; c.lineWidth=2;
+    c.setLineDash([4,4]); c.stroke(); c.setLineDash([]);
+  }
+
+  const gr = c.createRadialGradient(-r*.3,-r*.3,r*.05,0,0,r);
+  gr.addColorStop(0,'#b08050'); gr.addColorStop(0.65,'#7a5530'); gr.addColorStop(1,'#3e2810');
+  c.beginPath(); c.arc(0,0,r,0,Math.PI*2); c.fillStyle=gr; c.fill();
+
+  c.beginPath(); c.arc(0,0,r,0,Math.PI*2);
+  c.strokeStyle=ast.patternColor; c.lineWidth=3.5;
+  const dash = {dot:[2,5],dash:[7,4],wave:[9,3],cross:[4,4,1,4]}[ast.pattern] || [];
+  c.setLineDash(dash); c.stroke(); c.setLineDash([]);
+
+  const seed = ast.id * 137;
+  for (let i = 0; i < 3; i++) {
+    const cx2 = (((seed*(i+1)*73)%100)/100 - 0.5)*r*1.1;
+    const cy2 = (((seed*(i+1)*37)%100)/100 - 0.5)*r*1.1;
+    const cr  = r*0.07 + (((seed*(i+2)*19)%100)/100)*r*0.1;
+    if (Math.sqrt(cx2*cx2+cy2*cy2)+cr < r*0.88) {
+      c.beginPath(); c.arc(cx2,cy2,cr,0,Math.PI*2); c.fillStyle='rgba(0,0,0,0.28)'; c.fill();
+    }
+  }
+
+  const letters = pool(ast);
+  const n = letters.length;
+  const cols = Math.ceil(Math.sqrt(n));
+  const rows = Math.ceil(n / cols);
+  const fs = Math.max(9, Math.min(20, Math.floor(r * 0.4 - n * 0.9)));
+  c.font = `bold ${fs}px 'Orbitron',monospace`;
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  const sx = Math.min(r * 0.44, (r * 1.15) / cols);
+  const sy = Math.min(r * 0.4,  (r * 1.1) / rows);
+  letters.forEach((l, idx) => {
+    const col = idx % cols, row = Math.floor(idx / cols);
+    const lx = (col - (cols-1)/2) * sx;
+    const ly = (row - (rows-1)/2) * sy;
+    c.fillStyle='rgba(0,0,0,0.5)'; c.fillText(l, lx+1.5, ly+1.5);
+    c.fillStyle='#fff'; c.fillText(l, lx, ly);
+  });
+  c.restore();
+}
+
+function drawExplosion(ast) {
+  const t = ast.explodeTimer / 36;
+  ast.particles.forEach(p => {
+    if (p.alpha <= 0) return;
+    GC2.save(); GC2.globalAlpha = Math.max(0, p.alpha);
+    GC2.beginPath(); GC2.arc(p.x, p.y, p.r*(1-t*0.4), 0, Math.PI*2);
+    GC2.fillStyle = p.color; GC2.fill(); GC2.restore();
+  });
+  GC2.save(); GC2.translate(ast.x, ast.y);
+  GC2.globalAlpha = Math.max(0, 0.7 - t*1.2);
+  GC2.beginPath(); GC2.arc(0, 0, astRadius(ast)+10+t*60, 0, Math.PI*2);
+  GC2.strokeStyle='#00ffcc'; GC2.lineWidth=2; GC2.stroke(); GC2.restore();
+}
+
+// ============================================================
+// HIT DETECTION
+// ============================================================
+function astAt(mx, my) {
+  for (const ast of G.asteroids) {
+    if (!ast.active || ast.exploding) continue;
+    const r = astRadius(ast) + 16;
+    const dx = mx - ast.x, dy = my - ast.y;
+    if (dx*dx+dy*dy <= r*r) return ast;
+  }
+  return null;
+}
+
+GC.style.pointerEvents = 'all';
+GC.addEventListener('click', e => {
+  if (G.gameOver) return;
+  const rect = GC.getBoundingClientRect();
+  const ast = astAt(e.clientX - rect.left, e.clientY - rect.top);
+  if (ast) clickAsteroid(ast.id);
+});
+
+// ============================================================
+// UI
+// ============================================================
+function renderHand() {
+  const container = document.getElementById('hand-cards');
+  container.innerHTML = '';
+  G.hand.forEach((card, i) => {
+    const div = document.createElement('div');
+    const isSelected = i === G.selectedCardIdx;
+    const disabled = false;
+    div.className = 'card' + (isSelected ? ' selected' : '') + (disabled ? ' disabled' : '');
+    div.innerHTML = `<div class="card-letter">${card.letters[0]}</div><div class="card-divider"></div><div class="card-letter bot">${card.letters[1]}</div><div class="card-dot" style="background:${card.color};box-shadow:0 0 5px ${card.color}"></div>`;
+    if (!disabled) {
+      div.addEventListener('click', () => {
+        G.selectedCardIdx = (G.selectedCardIdx === i) ? null : i;
+        renderHand();
+        document.getElementById('instruct').textContent = G.selectedCardIdx !== null
+          ? `[${card.letters.join('/')}] SELECTED · CLICK AN ASTEROID TO PLAY`
+          : 'SELECT A CARD FROM YOUR HAND · THEN CLICK AN ASTEROID TO PLAY IT';
+      });
+    }
+    container.appendChild(div);
+  });
+  document.getElementById('deck-info').textContent = `DECK: ${G.deck.length} · DISCARD: ${G.discard.length}`;
+}
+
+function renderSidebar() {
+  const panel = document.getElementById('sidebar');
+  panel.innerHTML = '';
+  G.asteroids.filter(a => a.active && !a.exploding).forEach(ast => {
+    const div = document.createElement('div');
+    div.className = 'a-info' + (G.claimAsteroidId === ast.id ? ' claimed' : (ast.y > earthY() * 0.65 && ast.y > 0) ? ' danger' : '');
+    div.innerHTML = `<div class="a-letters">${pool(ast).join(' ')}</div><div style="font-size:9px;color:#445;margin-top:2px">${ast.pattern.toUpperCase()} · ${Math.max(0,Math.round(ast.y/earthY()*100))}%</div>`;
+    panel.appendChild(div);
+  });
+}
+
+function refreshHUD() {
+  document.getElementById('min-len-val').textContent = G.minLength + '+';
+  const hp = G.hp || 0;
+  document.getElementById('lives-val').textContent = hp;
+  const bar = document.getElementById('hp-bar');
+  const pct = Math.max(0, Math.min(100, (hp / 20) * 100));
+  bar.style.width = pct + '%';
+  bar.style.background = hp > 60 ? 'var(--success)' : hp > 30 ? 'var(--warn)' : 'var(--danger)';
+  document.getElementById('lives-val').style.color = hp > 60 ? 'var(--success)' : hp > 30 ? 'var(--warn)' : 'var(--danger)';
+  document.getElementById('level-val').textContent = G.level;
+  document.getElementById('score-val').textContent = G.score;
+}
+
+function refreshUI() { renderHand(); renderSidebar(); refreshHUD(); }
+
+// ============================================================
+// KEYBOARD
+// ============================================================
+document.addEventListener('keydown', e => {
+  if (G.gameOver) return;
+  const wp = document.getElementById('word-panel');
+
+  if (wp.classList.contains('visible')) {
+    if (e.key === 'Escape') { wp.classList.remove('visible'); G.claimAsteroidId = null; G.claimWord = ''; return; }
+    if (e.key === 'Enter') { e.preventDefault(); confirmClaim(); return; }
+    if (e.key === 'Backspace') { G.claimWord = G.claimWord.slice(0,-1); updateWordDisplay(); return; }
+    if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) { G.claimWord += e.key.toUpperCase(); updateWordDisplay(); }
+    return;
+  }
+  if (e.key === 'Escape') {
+    const uo = document.getElementById('upgrade-overlay');
+    if (!uo.classList.contains('hidden')) return;
+    const wp = document.getElementById('word-panel');
+    if (wp.classList.contains('visible')) { wp.classList.remove('visible'); G.claimAsteroidId = null; G.claimWord = ''; return; }
+    const qo = document.getElementById('quit-overlay');
+    if (!qo.classList.contains('hidden')) { closeQuitMenu(); return; }
+    openQuitMenu();
+  }
+});
+
+function updateWordDisplay() {
+  const el = document.getElementById('word-display');
+  el.textContent = G.claimWord;
+  const ast = G.asteroids.find(a => a.id === G.claimAsteroidId);
+  if (!ast || !G.claimWord) { el.className = ''; return; }
+  const p = pool(ast);
+  const ok = canForm(G.claimWord, p) && isValid(G.claimWord) && G.claimWord.length >= G.minLength;
+  const bad = (!canForm(G.claimWord, p) && G.claimWord.length > 0) || (G.claimWord.length >= 2 && !canForm(G.claimWord,p));
+  el.className = ok ? 'valid' : (G.claimWord.length >= 2 && !canForm(G.claimWord, p)) ? 'invalid' : '';
+}
+
+document.getElementById('wconfirm').addEventListener('click', confirmClaim);
+document.getElementById('wclear').addEventListener('click', () => { G.claimWord = ''; updateWordDisplay(); });
+document.getElementById('wcancel').addEventListener('click', () => {
+  document.getElementById('word-panel').classList.remove('visible');
+  G.claimAsteroidId = null; G.claimWord = '';
+});
+
+// ============================================================
+// WIN / LOSE
+// ============================================================
+// winGame removed - endless mode
+function loseGame() {
+  G.gameOver = true;
+  document.getElementById('end-title').textContent = 'EARTH DESTROYED';
+  document.getElementById('end-title').style.color = 'var(--danger)';
+  document.getElementById('end-sub').textContent = 'THE ASTEROIDS WERE TOO MANY.';
+  document.getElementById('final-score').textContent = G.score;
+  document.getElementById('end-stats').innerHTML =
+    `LEVEL ${G.level} &nbsp;·&nbsp; ${G.wordsDestroyed} WORDS &nbsp;·&nbsp; ${G.asteroids.filter(a=>!a.active&&!a.exploding).length} ASTEROIDS CLEARED`;
+  document.getElementById('end-screen').classList.remove('hidden');
+  flashScreen('#ff3c3c');
+}
+
+function flashScreen(col) {
+  const f = document.getElementById('flash');
+  f.style.background = col; f.style.opacity='0.3';
+  setTimeout(() => f.style.opacity='0', 130);
+}
+let msgT = null;
+function showMsg(text, col) {
+  const el = document.getElementById('msg');
+  el.textContent = text; el.style.color = col; el.style.textShadow = `0 0 30px ${col}`;
+  el.style.opacity = '1';
+  if (msgT) clearTimeout(msgT);
+  msgT = setTimeout(() => el.style.opacity = '0', 1400);
+}
+
+// ============================================================
+// SCREENS
+// ============================================================
+function openQuitMenu() {
+  if (!G) return;
+  if (G.gameOver) { confirmQuit(); return; }  // already over, just go to menu
+  G.paused = true;
+  document.getElementById('quit-overlay').classList.remove('hidden');
+}
+function closeQuitMenu() {
+  G.paused = false;
+  document.getElementById('quit-overlay').classList.add('hidden');
+}
+function confirmQuit() {
+  G.gameOver = true;
+  G.paused = false;
+  document.getElementById('quit-overlay').classList.add('hidden');
+  document.getElementById('end-screen').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+}
+
+document.getElementById('menu-btn').addEventListener('click', openQuitMenu);
+document.getElementById('resume-btn').addEventListener('click', closeQuitMenu);
+document.getElementById('quit-btn').addEventListener('click', confirmQuit);
+
+document.querySelectorAll('.diff-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('sel'));
+  b.classList.add('sel');
+}));
+// Load word list on startup, enable start button when ready
+loadWordList().then(() => {
+  const btn = document.getElementById('start-btn');
+  btn.disabled = false;
+  btn.style.opacity = '';
+});
+
+document.getElementById('start-btn').addEventListener('click', showChallengeScreen);
+document.getElementById('challenge-skip').addEventListener('click', skipChallenge);
+document.getElementById('end-menu-btn').addEventListener('click', confirmQuit);
+document.getElementById('restart-btn').addEventListener('click', () => {
+  document.getElementById('end-screen').classList.add('hidden');
+  document.getElementById('challenge-screen').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+});
+
+// Idle star animation before game starts
+(function idle() { tickStars(); requestAnimationFrame(idle); })();
+</script>
+</body>
+</html>
