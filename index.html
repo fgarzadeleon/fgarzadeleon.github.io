@@ -188,6 +188,54 @@
     animation: slide-in-right 0.28s cubic-bezier(0.22,1,0.36,1) forwards;
   }
 
+
+  /* ── LEADERBOARD ── */
+  #leaderboard-section {
+    margin-top: 18px; width: 100%; max-width: 480px;
+  }
+  #lb-title {
+    font-size: 10px; letter-spacing: 4px; color: var(--ui-dim);
+    text-align: center; margin-bottom: 10px;
+  }
+  #lb-rows { width: 100%; }
+  .lb-row {
+    display: flex; align-items: center; gap: 0;
+    padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 11px; letter-spacing: 1px;
+  }
+  .lb-row:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
+  .lb-rank { width: 28px; color: var(--ui-dim); font-size: 10px; }
+  .lb-rank.gold   { color: #ffcc44; font-weight: 900; }
+  .lb-rank.silver { color: #aab; }
+  .lb-rank.bronze { color: #c87941; }
+  .lb-name  { flex: 1; color: var(--ui-bright); text-transform: uppercase; letter-spacing: 2px; }
+  .lb-score { width: 70px; text-align: right; color: var(--letter-glow); font-weight: 900; }
+  .lb-meta  { width: 80px; text-align: right; color: var(--ui-dim); font-size: 9px; }
+  #lb-loading { text-align:center; color: var(--ui-dim); font-size:10px; letter-spacing:3px; padding: 12px 0; }
+
+  /* ── NAME ENTRY on game over ── */
+  #name-entry {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    margin-top: 14px;
+  }
+  #name-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--ui-dim); border-radius: 6px;
+    color: #fff; font-family: var(--font-title); font-size: 18px;
+    letter-spacing: 4px; text-align: center; text-transform: uppercase;
+    padding: 8px 18px; width: 220px; outline: none;
+  }
+  #name-input:focus { border-color: var(--letter-glow); box-shadow: 0 0 12px rgba(0,255,204,0.2); }
+  #submit-score-btn {
+    font-family: var(--font-hud); font-size: 12px; letter-spacing: 3px;
+    padding: 10px 28px; border: 1px solid var(--letter-glow);
+    background: rgba(0,255,204,0.08); color: var(--letter-glow);
+    border-radius: 4px; cursor: pointer; transition: all 0.2s;
+  }
+  #submit-score-btn:hover { background: rgba(0,255,204,0.18); }
+  #submit-score-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  #submit-status { font-size: 10px; letter-spacing: 2px; color: var(--ui-dim); min-height: 16px; }
+
   /* ── CHALLENGE SCREEN ── */
   #challenge-screen { gap: 18px; }
   #challenge-screen .screen-title { font-size: clamp(22px, 5vw, 40px); }
@@ -575,6 +623,10 @@
   </div>
   <div id="word-load-status" style="font-size:10px;letter-spacing:2px;color:var(--ui-dim);min-height:16px">CALIBRATING LINGUISTICS ARRAY...</div>
   <button class="btn" id="start-btn" disabled style="opacity:0.5">DEPLOY</button>
+  <div id="leaderboard-section">
+    <div id="lb-title">// COMMAND LEADERBOARD</div>
+    <div id="lb-rows"><div id="lb-loading">CONTACTING COMMAND...</div></div>
+  </div>
 </div>
 
 
@@ -595,6 +647,11 @@
     <div id="final-score" style="font-family:var(--font-title);font-size:60px;font-weight:900;letter-spacing:4px;color:var(--letter-glow);text-shadow:0 0 30px var(--letter-glow)">0</div>
   </div>
   <div id="end-stats" style="font-size:11px;letter-spacing:2px;color:var(--ui-dim);text-align:center;line-height:2"></div>
+  <div id="name-entry">
+    <input id="name-input" type="text" maxlength="12" placeholder="ENTER CALLSIGN" autocomplete="off" spellcheck="false">
+    <button id="submit-score-btn">SUBMIT TO COMMAND</button>
+    <div id="submit-status"></div>
+  </div>
   <div style="display:flex;gap:14px;margin-top:8px">
     <button class="btn" id="restart-btn">REDEPLOY</button>
     <button class="btn" id="end-menu-btn" style="border-color:var(--ui-dim);color:var(--ui-dim)">RETURN TO BASE</button>
@@ -1245,11 +1302,17 @@ function clickAsteroid(id) {
   const ast = G.asteroids.find(a => a.id === id && a.active && !a.exploding);
   if (!ast) return;
 
-  // Word panel already open for this asteroid — ignore
+  // Card already selected — play it onto this asteroid (classic flow)
+  if (G.selectedCardIdx !== null) {
+    playCard(id);
+    return;
+  }
+
+  // Word panel already open for this asteroid — ignore repeat tap
   if (document.getElementById('word-panel').classList.contains('visible') &&
       G.claimAsteroidId === id) return;
 
-  // Close any open word panel for a different asteroid first
+  // Close any open word panel for a different asteroid
   if (document.getElementById('word-panel').classList.contains('visible')) {
     document.getElementById('word-panel').classList.remove('visible');
     G.claimWord = '';
@@ -1258,7 +1321,6 @@ function clickAsteroid(id) {
 
   // Lock target AND open word panel immediately
   G.targetAsteroidId = id;
-  G.selectedCardIdx = null;
   openClaim(id);
 }
 
@@ -2197,6 +2259,11 @@ function loseGame() {
   document.getElementById('end-stats').innerHTML =
     `LEVEL ${G.level} &nbsp;·&nbsp; ${G.wordsDestroyed} WORDS &nbsp;·&nbsp; ${G.asteroids.filter(a=>!a.active&&!a.exploding).length} TARGETS NEUTRALISED`;
   document.getElementById('end-screen').classList.remove('hidden');
+  // Pre-fill name from last used
+  const savedName = localStorage.getItem('asteroidell_callsign') || '';
+  document.getElementById('name-input').value = savedName;
+  document.getElementById('submit-status').textContent = '';
+  document.getElementById('submit-score-btn').disabled = false;
   flashScreen('#ff3c3c');
 }
 
@@ -2233,6 +2300,7 @@ function confirmQuit() {
   document.getElementById('quit-overlay').classList.add('hidden');
   document.getElementById('end-screen').classList.add('hidden');
   document.getElementById('start-screen').classList.remove('hidden');
+  loadLeaderboard();
 }
 
 document.getElementById('menu-btn').addEventListener('click', openQuitMenu);
@@ -2257,6 +2325,101 @@ document.getElementById('restart-btn').addEventListener('click', () => {
   document.getElementById('end-screen').classList.add('hidden');
   document.getElementById('challenge-screen').classList.add('hidden');
   document.getElementById('start-screen').classList.remove('hidden');
+  loadLeaderboard();
+});
+
+
+// ══════════════════════════════════════════════════════════════
+// SUPABASE LEADERBOARD
+// ══════════════════════════════════════════════════════════════
+const SB_URL  = 'https://cipebfbhbejagmerivus.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpcGViZmJoYmVqYWdtZXJpdnVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MjIzMzIsImV4cCI6MjA4ODI5ODMzMn0.9iZIg2KBeTBA9pfZ-r6uWX_mb0kUPJspk8RKsLofGkE';
+
+async function sbPost(table, data) {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(data)
+    });
+    if (r.status === 201 || r.status === 200) return { ok: true };
+    const body = await r.text();
+    console.warn('Supabase error:', r.status, body);
+    return { error: body };
+  } catch(e) { console.warn('Leaderboard post failed', e); return null; }
+}
+
+async function sbGet(table, query) {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/${table}?${query}`, {
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`
+      }
+    });
+    return await r.json();
+  } catch(e) { console.warn('Leaderboard fetch failed', e); return []; }
+}
+
+async function submitScore(name, score, level, words) {
+  return sbPost('scores', { name, score, level, words });
+}
+
+async function fetchLeaderboard() {
+  return sbGet('scores', 'select=name,score,level,words,created_at&order=score.desc&limit=10');
+}
+
+
+async function loadLeaderboard() {
+  const rows = document.getElementById('lb-rows');
+  rows.innerHTML = '<div id="lb-loading">CONTACTING COMMAND...</div>';
+  const data = await fetchLeaderboard();
+  if (!data || !data.length) {
+    rows.innerHTML = '<div id="lb-loading">NO SCORES YET — BE THE FIRST</div>';
+    return;
+  }
+  rows.innerHTML = '';
+  const rankLabels = ['🥇','🥈','🥉'];
+  const rankClasses = ['gold','silver','bronze'];
+  data.forEach((row, i) => {
+    const div = document.createElement('div');
+    div.className = 'lb-row';
+    const rank = i < 3
+      ? `<span class="lb-rank ${rankClasses[i]}">${rankLabels[i]}</span>`
+      : `<span class="lb-rank">#${i+1}</span>`;
+    div.innerHTML = `
+      ${rank}
+      <span class="lb-name">${(row.name||'UNKNOWN').slice(0,12)}</span>
+      <span class="lb-score">${row.score.toLocaleString()}</span>
+      <span class="lb-meta">LV${row.level} · ${row.words}W</span>
+    `;
+    rows.appendChild(div);
+  });
+}
+
+// Score submit — attached directly since DOM is already ready
+document.getElementById('submit-score-btn').addEventListener('click', async () => {
+  const nameInput  = document.getElementById('name-input');
+  const submitBtn  = document.getElementById('submit-score-btn');
+  const submitStatus = document.getElementById('submit-status');
+  const name = nameInput.value.trim().toUpperCase();
+  if (!name) { submitStatus.textContent = 'ENTER A CALLSIGN FIRST'; return; }
+  submitBtn.disabled = true;
+  submitStatus.textContent = 'TRANSMITTING...';
+  localStorage.setItem('asteroidell_callsign', name);
+  const result = await submitScore(name, G.score, G.level, G.wordsDestroyed);
+  if (result && !result.error) {
+    submitStatus.textContent = '✓ SCORE LOGGED TO COMMAND';
+    submitBtn.textContent = 'SUBMITTED';
+  } else {
+    submitStatus.textContent = 'TRANSMISSION FAILED — TRY AGAIN';
+    submitBtn.disabled = false;
+  }
 });
 
 // Idle star animation before game starts
