@@ -50,6 +50,144 @@
   #level-val { color: var(--letter-glow); text-shadow: 0 0 8px var(--letter-glow); }
 
 
+
+  /* ── JOKER TRAY (persistent upgrades) ── */
+  #joker-tray {
+    position: fixed; bottom: 195px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 8px;
+    z-index: 9; pointer-events: none;
+    flex-wrap: wrap; padding: 0 12px;
+  }
+  .joker-chip {
+    background: rgba(5,14,31,0.9);
+    border-radius: 8px; padding: 4px 10px;
+    font-size: 10px; letter-spacing: 1.5px;
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; gap: 5px;
+    pointer-events: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    max-width: 160px;
+  }
+  .joker-chip.pulse {
+    animation: joker-pulse 0.4s ease-out;
+  }
+  @keyframes joker-pulse {
+    0%   { box-shadow: 0 0 0 rgba(0,255,204,0); }
+    50%  { box-shadow: 0 0 18px rgba(0,255,204,0.7); }
+    100% { box-shadow: 0 0 0 rgba(0,255,204,0); }
+  }
+  .joker-icon { font-size: 14px; }
+  .joker-label { color: var(--ui-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ── SCORE POP ── */
+  .score-pop {
+    position: fixed; pointer-events: none; z-index: 50;
+    font-family: var(--font-title); font-weight: 900;
+    text-shadow: 0 0 12px currentColor;
+    animation: score-pop-anim 1.1s ease-out forwards;
+  }
+  @keyframes score-pop-anim {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-90px) scale(1.4); }
+  }
+
+  /* ── UPGRADE CARDS ── */
+  .upgrade-card { min-height: 180px; }
+  .upgrade-synergy {
+    font-size: 9px; letter-spacing: 1px; color: var(--letter-glow);
+    margin-top: 4px; font-style: italic;
+  }
+
+
+
+  /* ── SUPPLY CRATE ── */
+  @keyframes crate-pulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(255,204,0,0.4); }
+    50%       { box-shadow: 0 0 40px rgba(255,204,0,0.9); }
+  }
+  @keyframes float-in {
+    0%   { opacity: 0; transform: translateY(-18px) scale(0.85); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes float-out {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.15); }
+  }
+
+  /* Floating upgrade picker — slides in from right, stays out of play area */
+  #crate-picker {
+    position: fixed; top: 50%; right: 16px;
+    transform: translateY(-50%);
+    z-index: 40;
+    display: flex; flex-direction: column; gap: 10px;
+    width: 200px; padding: 14px 12px 12px;
+    background: rgba(2,8,18,0.97);
+    border: 1px solid rgba(255,204,0,0.45);
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(255,204,0,0.15), inset 0 0 20px rgba(255,180,0,0.04);
+    animation: slide-in-right 0.28s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+  @keyframes slide-in-right {
+    0%   { opacity: 0; transform: translateY(-50%) translateX(60px); }
+    100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+  }
+  @keyframes slide-out-right {
+    0%   { opacity: 1; transform: translateY(-50%) translateX(0); }
+    100% { opacity: 0; transform: translateY(-50%) translateX(60px); }
+  }
+  #crate-picker.hidden { display: none; }
+  #crate-picker-title {
+    font-family: var(--font-title); font-size: 10px;
+    letter-spacing: 3px; color: #ffcc44;
+    text-align: center; margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255,204,0,0.2);
+    padding-bottom: 8px;
+  }
+  #crate-picker .upgrade-card {
+    cursor: pointer;
+    min-height: unset; padding: 10px;
+    animation: float-in 0.25s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  #crate-picker .upgrade-card:nth-child(2) { animation-delay: 0.05s; }
+  #crate-picker .upgrade-card:nth-child(3) { animation-delay: 0.10s; }
+  #crate-picker .upgrade-card:nth-child(4) { animation-delay: 0.15s; }
+  #crate-picker .upgrade-icon { font-size: 22px; margin-bottom: 4px; }
+  #crate-picker .upgrade-name { font-size: 10px; letter-spacing: 2px; }
+  #crate-picker .upgrade-desc { font-size: 9px; line-height: 1.4; margin-top: 3px; }
+  #crate-picker .upgrade-rarity { font-size: 8px; margin-top: 4px; }
+
+
+  /* ── SLOW MO OVERLAY ── */
+  #slowmo-overlay {
+    position: fixed; inset: 0; z-index: 38;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,20,0.72) 100%);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  #slowmo-overlay.active { opacity: 1; }
+  #slowmo-timer {
+    position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 42; font-family: var(--font-title); font-size: 11px;
+    letter-spacing: 4px; color: #ffcc44;
+    opacity: 0; transition: opacity 0.3s;
+    text-shadow: 0 0 12px rgba(255,204,0,0.8);
+  }
+  #slowmo-timer.active { opacity: 1; }
+
+  /* Restyle picker for slowmo context */
+  #crate-picker {
+    position: fixed; top: 50%; right: 16px;
+    transform: translateY(-50%);
+    z-index: 41;
+    display: flex; flex-direction: column; gap: 8px;
+    width: 210px; padding: 14px 12px 12px;
+    background: rgba(2,6,16,0.98);
+    border: 1px solid rgba(255,204,0,0.5);
+    border-radius: 12px;
+    box-shadow: 0 0 50px rgba(255,180,0,0.18), inset 0 0 30px rgba(255,150,0,0.04);
+    animation: slide-in-right 0.28s cubic-bezier(0.22,1,0.36,1) forwards;
+  }
+
   /* ── CHALLENGE SCREEN ── */
   #challenge-screen { gap: 18px; }
   #challenge-screen .screen-title { font-size: clamp(22px, 5vw, 40px); }
@@ -184,6 +322,55 @@
   .card-letter.bot { color: #aaccff; font-size: 18px; }
   .card-divider { width: 36px; height: 1px; background: var(--card-border); margin: 3px 0; }
   .card-dot { position: absolute; bottom: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; }
+
+
+  /* ── LETTER PICK (tap card while word panel open) ── */
+  .letter-pick {
+    position: absolute; bottom: 100%; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 4px; z-index: 20;
+    animation: card-deal-in 0.15s ease-out forwards;
+    margin-bottom: 6px;
+  }
+  .lp-btn {
+    width: 30px; height: 30px;
+    background: rgba(5,14,31,0.97);
+    border: 1.5px solid var(--letter-glow);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-title); font-size: 14px; font-weight: 900;
+    color: #fff; cursor: pointer;
+    box-shadow: 0 0 10px rgba(0,255,204,0.3);
+    transition: background 0.1s;
+  }
+  .lp-btn:hover { background: rgba(0,255,204,0.15); color: var(--letter-glow); }
+
+  /* ── CARD ANIMATIONS ── */
+  .card {
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s, opacity 0.2s;
+  }
+  @keyframes card-deal-in {
+    0%   { opacity: 0; transform: translateY(-28px) scale(0.85); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes card-play-out {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-40px) scale(0.7); }
+  }
+  .card.deal-in  { animation: card-deal-in  0.22s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .card.play-out { animation: card-play-out 0.18s ease-in forwards; pointer-events: none; }
+
+  /* Fixed-width slot so cards dont shift left when one is removed */
+  .card-slot {
+    width: 64px; height: 90px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .card-slot .card {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+
   #deck-info { font-size: 9px; letter-spacing: 1px; color: var(--ui-dim); }
 
 
@@ -214,7 +401,7 @@
   }
   #word-panel.visible { display: flex; }
   #word-panel-title { font-size: 9px; letter-spacing: 3px; color: var(--ui-dim); }
-  #word-avail { font-size: 13px; letter-spacing: 3px; color: #667; }
+  #word-avail { display: none; }
   #word-display {
     font-family: var(--font-title); font-size: 30px; font-weight: 700;
     letter-spacing: 6px; min-width: 160px; text-align: center;
@@ -301,7 +488,6 @@
 <div id="hud">
   <div id="title-hud">ASTEROIDELL</div>
   <button id="menu-btn">MENU</button>
-  <div class="hud-stat"><div class="hud-label">min word</div><div class="hud-value" id="min-len-val">2+</div></div>
   <div class="hud-stat" style="min-width:120px">
     <div class="hud-label">EARTH HP</div>
     <div style="display:flex;align-items:center;gap:6px">
@@ -319,9 +505,10 @@
 <div id="sidebar"></div>
 
 <div id="word-panel">
-  <div id="word-panel-title">CLAIM A WORD — TYPE &amp; PRESS ENTER</div>
+  <div id="word-panel-title">TAP CARDS TO BUILD · KEYBOARD OR TYPE · ENTER TO DESTROY</div>
   <div id="word-avail"></div>
   <div id="word-display"></div>
+  <input id="word-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
   <div id="word-btns">
     <button class="wbtn" id="wclear">CLEAR</button>
     <button class="wbtn ok" id="wconfirm">DESTROY ↵</button>
@@ -330,9 +517,10 @@
 </div>
 
 
-<div id="instruct">SELECT A CARD TO PLAY · OR CLICK AN ASTEROID TO SPELL A WORD</div>
+<div id="joker-tray"></div>
+<div id="instruct">SELECT A CARD TO TRANSMIT · OR TAP AN ASTEROID TO DECODE</div>
 <div id="hand-area">
-  <div id="hand-label">YOUR HAND — SELECT A CARD · CLICK ASTEROID TO PLAY · CLICK ASTEROID TO SPELL</div>
+  <div id="hand-label">LOADOUT — SELECT A CARD TO TRANSMIT · TAP ASTEROID TO DECODE</div>
   <div id="hand-cards"></div>
   <div id="deck-info">DECK: — · DISCARD: —</div>
 </div>
@@ -340,56 +528,62 @@
 <div id="flash"></div>
 <div id="msg"></div>
 
-<!-- UPGRADE OVERLAY -->
-<div id="upgrade-overlay" class="hidden">
-  <div id="upgrade-title">LEVEL UP — CHOOSE AN UPGRADE</div>
+<div id="slowmo-overlay"></div>
+<div id="slowmo-timer">⚡ CHOOSE TECHNOLOGY</div>
+<!-- CRATE PICKER (Mark II — floats in after crate destroyed) -->
+<div id="crate-picker" class="hidden">
+  <div id="crate-picker-title">📦 SUPPLY CRATE OPENED — SELECT TECHNOLOGY</div>
+</div>
+
+<!-- UPGRADE OVERLAY (kept for legacy / Mark I) -->
+<div id="upgrade-overlay" class="hidden" style="display:none">
+  <div id="upgrade-title">SELECT NEW TECHNOLOGY</div>
   <div id="upgrade-level-badge">LEVEL 1</div>
   <div id="upgrade-cards"></div>
 </div>
 
 <!-- QUIT OVERLAY -->
 <div id="quit-overlay" class="hidden">
-  <div id="quit-title">ABANDON MISSION?</div>
-  <div id="quit-sub">YOUR PROGRESS WILL BE LOST</div>
+  <div id="quit-title">ABORT MISSION?</div>
+  <div id="quit-sub">EARTH WILL BE UNDEFENDED</div>
   <div class="quit-row">
-    <button class="btn red" id="quit-btn">QUIT TO MENU</button>
-    <button class="btn" id="resume-btn">RESUME [ESC]</button>
+    <button class="btn red" id="quit-btn">ABORT TO BASE</button>
+    <button class="btn" id="resume-btn">CONTINUE DEFENCE</button>
   </div>
 </div>
 
 <!-- START SCREEN -->
 <div id="start-screen" class="screen">
-  <div class="screen-title">ASTEROIDELL</div>
-  <div class="screen-sub">PLAY CARDS ONTO ASTEROIDS TO BUILD WORDS AND DESTROY THEM.<br>SURVIVE AS LONG AS YOU CAN — 3 LIVES · ENDLESS WAVES.</div>
+  <div class="screen-title">ASTEROIDELL</div><div style="font-size:11px;letter-spacing:4px;color:var(--ui-dim);margin-top:-10px;margin-bottom:4px">MARK II</div>
+  <div class="screen-sub">TRANSMIT CODES TO DESTROY INBOUND ASTEROIDS.<br>DEFEND EARTH AS LONG AS YOU CAN.</div>
   <div class="rules-box">
-    <h3>// HOW TO PLAY</h3>
-    Each card has <strong>two letters</strong> on it.<br>
-    <strong style="color:var(--letter-glow)">PLAY</strong> — Click a card in your hand, then click an asteroid to add those letters to it.<br>
-    <strong style="color:var(--letter-glow)">WORD</strong> — Click any asteroid to spell a word from its letters and destroy it.<br>
-    You can play cards and attempt words <strong>freely at any time</strong> — no turns, no waiting.<br><br>
+    <h3>// MISSION BRIEFING</h3>
+    <strong style="color:var(--letter-glow)">PLAY</strong> — Click a card, then click an asteroid. Its letters join the asteroid's free letter pool.<br>
+    <strong style="color:var(--letter-glow)">WORD</strong> — Click any asteroid to spell a word using <em>any</em> of its letters in any combination.<br>
+    Transmit and decode <strong>freely at any time</strong> — no turns, no waiting.<br><br>
     Each word must be <strong>longer</strong> than the last.<br>
-    Every 3 words destroyed you advance a level — choose an upgrade and asteroids get faster.<br>
-    Earth has <strong>20 HP</strong>. Asteroids deal damage when they hit — bigger asteroids hurt more.
+    Every 2 transmissions you receive new <strong>technology</strong>. Systems stack. Build your defence grid.<br>
+    Earth has <strong>20 HP</strong>. Asteroids deal damage on impact — larger targets hit harder.
   </div>
   <div>
     <div class="hud-label" style="text-align:center;margin-bottom:10px">DIFFICULTY</div>
     <div class="diff-row">
-      <button class="diff-btn sel" data-speed="0.25" data-ast="3">CADET</button>
+      <button class="diff-btn sel" data-speed="0.25" data-ast="3">SCOUT</button>
       <button class="diff-btn" data-speed="0.45" data-ast="4">COMMANDER</button>
       <button class="diff-btn" data-speed="0.75" data-ast="5">ADMIRAL</button>
     </div>
   </div>
-  <div id="word-load-status" style="font-size:10px;letter-spacing:2px;color:var(--ui-dim);min-height:16px">LOADING WORD LIST...</div>
-  <button class="btn" id="start-btn" disabled style="opacity:0.5">LAUNCH MISSION</button>
+  <div id="word-load-status" style="font-size:10px;letter-spacing:2px;color:var(--ui-dim);min-height:16px">CALIBRATING LINGUISTICS ARRAY...</div>
+  <button class="btn" id="start-btn" disabled style="opacity:0.5">DEPLOY</button>
 </div>
 
 
 <!-- CHALLENGE SCREEN -->
 <div id="challenge-screen" class="screen hidden">
-  <div class="screen-title" style="color:var(--warn);font-size:clamp(22px,5vw,40px)">CHOOSE YOUR FATE</div>
-  <div class="screen-sub" style="font-size:12px">SELECT A STARTING CONDITION FOR THIS RUN</div>
+  <div class="screen-title" style="color:var(--warn);font-size:clamp(22px,5vw,40px)">MISSION PARAMETERS</div>
+  <div class="screen-sub" style="font-size:12px">CHOOSE YOUR OPERATIONAL CONDITIONS</div>
   <div id="challenge-grid"></div>
-  <button id="challenge-skip">SKIP — NO MODIFIER</button>
+  <button id="challenge-skip">STANDARD DEPLOYMENT</button>
 </div>
 
 <!-- END SCREEN -->
@@ -402,8 +596,8 @@
   </div>
   <div id="end-stats" style="font-size:11px;letter-spacing:2px;color:var(--ui-dim);text-align:center;line-height:2"></div>
   <div style="display:flex;gap:14px;margin-top:8px">
-    <button class="btn" id="restart-btn">PLAY AGAIN</button>
-    <button class="btn" id="end-menu-btn" style="border-color:var(--ui-dim);color:var(--ui-dim)">MAIN MENU</button>
+    <button class="btn" id="restart-btn">REDEPLOY</button>
+    <button class="btn" id="end-menu-btn" style="border-color:var(--ui-dim);color:var(--ui-dim)">RETURN TO BASE</button>
   </div>
 </div>
 
@@ -430,7 +624,7 @@ const RAW_PAIRS = [
 ];
 
 function buildDeck() {
-  return RAW_PAIRS.map((letters, i) => ({
+  return RAW_PAIRS.map((letters, i) => ({ uid: i,
     id: i,
     letters: [...letters],
     pattern: PATTERNS[i % PATTERNS.length],
@@ -594,113 +788,113 @@ let G = {};
 // STARTING CHALLENGES
 // ============================================================
 const ALL_CHALLENGES = [
-  // ── CURSES (harder, but feel epic) ─────────────────────────
+  // ── HAZARD — harder condition, meaningful upside ──────────
   {
-    id: 'min3',      type: 'curse', icon: '📏',
-    name: 'VERBOSE ONLY',
-    desc: 'Minimum word length starts at 3 instead of 2.',
-    effect: '+CHALLENGE',
-    apply(g) { g.minLength = 3; }
+    id: 'min3', type: 'hazard', icon: '📡',
+    name: 'LONG-RANGE COMMS',
+    desc: 'All targets require 3+ letter codes. In return, every transmission scores +50% points.',
+    effect: 'MIN 3 LETTERS · SCORE +50%',
+    apply(g) { g.wordLenWeights = [0,0,10,60,30]; g.riskMult = (g.riskMult||1) * 1.5; }
   },
   {
-    id: 'fast',      type: 'curse', icon: '☄️',
-    name: 'HYPERSONIC',
-    desc: 'Asteroids fall 40% faster from the start.',
-    effect: '↑ FALL SPEED ×1.4',
-    apply(g) { g.spawnSpeed *= 1.4; g.asteroids.forEach(a => a.speed *= 1.4); }
+    id: 'fast', type: 'hazard', icon: '☄️',
+    name: 'ACCELERATED IMPACT',
+    desc: 'Targets are 35% faster. Your loadout starts with 2 extra cards to compensate.',
+    effect: 'SPEED +35% · HAND +2',
+    apply(g) { g.spawnSpeed *= 1.35; g.asteroids.forEach(a => a.speed *= 1.35); g.handSize += 2; dealCard(); dealCard(); renderHand(); }
   },
   {
-    id: 'less_hand', type: 'curse', icon: '🤏',
-    name: 'SHORT HANDED',
-    desc: 'Start with only 2 cards in hand instead of 3.',
-    effect: 'HAND SIZE −1',
-    apply(g) { g.handSize = 2; if (g.hand.length > 2) g.hand.splice(2); renderHand(); }
+    id: 'less_hand', type: 'hazard', icon: '🤏',
+    name: 'SKELETON CREW',
+    desc: 'Loadout reduced to 4 cards. Each transmission scores double points.',
+    effect: 'HAND SIZE 4 · SCORE ×2',
+    apply(g) { g.handSize = 4; while (g.hand.length > 4) g.hand.pop(); g.riskMult = (g.riskMult||1) * 2; renderHand(); }
   },
   {
-    id: 'two_lives', type: 'curse', icon: '💔',
-    name: 'FRAGILE EARTH',
-    desc: 'Start with only 12 HP instead of 20.',
-    effect: 'START HP: 12',
-    apply(g) { g.hp = 12; refreshHUD(); }
+    id: 'two_lives', type: 'hazard', icon: '💔',
+    name: 'DAMAGED SHIELDS',
+    desc: 'Start with 10 HP. Destroying any asteroid repairs +1 HP.',
+    effect: 'SHIELDS: 10 HP · REGEN ON KILL',
+    apply(g) { g.hp = 10; g.shieldRegen = true; refreshHUD(); }
   },
   {
-    id: 'min4',      type: 'curse', icon: '🔒',
-    name: 'LEXICON LOCK',
-    desc: 'Minimum word length starts at 4.',
-    effect: '+++ CHALLENGE',
-    apply(g) { g.minLength = 4; }
+    id: 'min4', type: 'hazard', icon: '🔐',
+    name: 'ENCRYPTED COMMS',
+    desc: 'All targets require 4+ letter codes. Score ×2.5 on every transmission.',
+    effect: 'MIN 4 LETTERS · SCORE ×2.5',
+    apply(g) { g.wordLenWeights = [0,0,0,30,70]; g.riskMult = (g.riskMult||1) * 2.5; }
   },
   {
-    id: 'no_skip',   type: 'curse', icon: '⛔',
-    name: 'NO RETREAT',
-    desc: 'You cannot skip the word phase — you must attempt a word each turn.',
-    effect: 'SKIP DISABLED',
-    apply(g) { g.noSkip = true; }
+    id: 'more_asts', type: 'hazard', icon: '🌑',
+    name: 'SWARM ALERT',
+    desc: 'Two extra asteroids already inbound. Destroying any target gives +3 pts per card on it.',
+    effect: '+2 ASTEROIDS · +3 PTS/CARD',
+    apply(g) { spawnNewAsteroid(); spawnNewAsteroid(); g.jokers.push({ id:'swarm_bounty', icon:'🌑', label:'+3/card salvage', tags:['asteroid','mult'], score(word,ast){ return (ast ? ast.cards.length : 0) * 3; } }); }
   },
   {
-    id: 'more_asts', type: 'curse', icon: '🌑',
-    name: 'ASTEROID STORM',
-    desc: 'Start with one extra asteroid on screen.',
-    effect: '+1 STARTING ASTEROID',
-    apply(g) { spawnNewAsteroid(); }
+    id: 'no_skip', type: 'hazard', icon: '⛔',
+    name: 'STANDING ORDERS',
+    desc: 'Cannot skip transmissions. Every successful code gives +1 HP back.',
+    effect: 'NO SKIP · +1 HP PER WORD',
+    apply(g) { g.noSkip = true; g.jokers.push({ id:'standing_orders', icon:'⛔', label:'+1 HP/word', tags:['survival'], score(word){ G.hp = Math.min(G.hp + 1, 30); refreshHUD(); return 0; } }); }
   },
-  // ── BOONS (easier start) ─────────────────────────────────
+  // ── ASSET — straightforward advantages ───────────────────
   {
-    id: 'slow',      type: 'boon', icon: '🧊',
-    name: 'COLD FRONT',
-    desc: 'Asteroids fall 20% slower to start.',
-    effect: '↓ FALL SPEED ×0.8',
-    apply(g) { g.spawnSpeed *= 0.8; g.asteroids.forEach(a => a.speed *= 0.8); }
-  },
-  {
-    id: 'extra_life_start', type: 'boon', icon: '❤️',
-    name: 'BACKUP SYSTEMS',
-    desc: 'Start with 28 HP instead of 20.',
-    effect: 'START HP: 28',
-    apply(g) { g.hp = 28; refreshHUD(); }
+    id: 'slow', type: 'asset', icon: '🧊',
+    name: 'ORBITAL DRAG',
+    desc: 'All targets 25% slower. More time to build complex codes.',
+    effect: 'SPEED −25%',
+    apply(g) { g.spawnSpeed *= 0.75; g.asteroids.forEach(a => a.speed *= 0.75); }
   },
   {
-    id: 'big_hand',  type: 'boon', icon: '🃏',
-    name: 'FULL GRIP',
-    desc: 'Start with 4 cards in hand instead of 3.',
+    id: 'extra_life_start', type: 'asset', icon: '🛡️',
+    name: 'REINFORCED SHIELDS',
+    desc: 'Earth shields fully reinforced. Start with 30 HP.',
+    effect: 'SHIELDS: 30 HP',
+    apply(g) { g.hp = 30; refreshHUD(); }
+  },
+  {
+    id: 'big_hand', type: 'asset', icon: '🃏',
+    name: 'EXPANDED LOADOUT',
+    desc: 'Start with 6 cards in your loadout instead of 5.',
     effect: 'HAND SIZE +1',
-    apply(g) { g.handSize = 4; dealCard(); renderHand(); }
+    apply(g) { g.handSize = 6; dealCard(); renderHand(); }
   },
   {
-    id: 'pushed_back', type: 'boon', icon: '🌊',
-    name: 'TIDAL PUSH',
-    desc: 'All asteroids start further away from Earth.',
+    id: 'pushed_back', type: 'asset', icon: '🌊',
+    name: 'EARLY WARNING',
+    desc: 'Radar detects asteroids early — all targets start further from Earth.',
     effect: 'ASTEROIDS PUSHED BACK',
-    apply(g) { g.asteroids.forEach(a => { a.y = Math.min(a.y, 60); }); }
+    apply(g) { g.asteroids.forEach(a => { a.y = Math.min(a.y, -200); }); }
   },
   {
-    id: 'reset_len', type: 'boon', icon: '🔄',
-    name: 'EASY OPENER',
-    desc: 'Word length never escalates above 4 for the first 5 words.',
-    effect: 'SOFT START',
-    apply(g) { g.softStart = 5; }
+    id: 'head_start', type: 'asset', icon: '⚡',
+    name: 'RAPID DEPLOYMENT',
+    desc: 'Start with your first technology upgrade already installed.',
+    effect: 'FREE STARTING TECH',
+    apply(g) { setTimeout(() => { if (!g.gameOver) { const ups = getRandomUpgrades(3); g.paused=true; document.getElementById('upgrade-level-badge').textContent='STARTING TECH'; const container=document.getElementById('upgrade-cards'); container.innerHTML=''; ups.forEach(u=>{ const d=document.createElement('div'); d.className='upgrade-card'; d.innerHTML=`<div class="upgrade-icon">${u.icon}</div><div class="upgrade-name">${u.name}</div><div class="upgrade-desc">${u.desc}</div><div class="upgrade-rarity rarity-${u.rarity}">${u.rarity.toUpperCase()}</div>`; d.addEventListener('click',()=>applyUpgrade(u)); container.appendChild(d); }); document.getElementById('upgrade-overlay').classList.remove('hidden'); } }, 800); }
   },
-  // ── WILD (double-edged) ───────────────────────────────────
+  // ── CLASSIFIED — high-risk high-reward ───────────────────
   {
-    id: 'glass_cannon', type: 'wild', icon: '💎',
-    name: 'GLASS CANNON',
-    desc: 'All words score 2× points, but you start with only 8 HP.',
-    effect: 'SCORE ×2 · START HP: 8',
-    apply(g) { g.hp = 8; g.riskMult = (g.riskMult||1) * 2; refreshHUD(); }
-  },
-  {
-    id: 'turbo_xp',  type: 'wild', icon: '⚡',
-    name: 'TURBO MODE',
-    desc: 'Level up every 2 words instead of 3 — upgrades come fast, so does danger.',
-    effect: 'LEVEL RATE ×1.5',
-    apply(g) { g.levelEvery = 2; }
+    id: 'glass_cannon', type: 'classified', icon: '💎',
+    name: 'ALL-IN STRIKE',
+    desc: 'Shields at 8 HP. Every transmission scores ×3 points.',
+    effect: 'SHIELDS: 8 HP · SCORE ×3',
+    apply(g) { g.hp = 8; g.riskMult = (g.riskMult||1) * 3; refreshHUD(); }
   },
   {
-    id: 'scrambled', type: 'wild', icon: '🎲',
-    name: 'SCRAMBLED SIGNALS',
-    desc: 'Letters on asteroids are shuffled each time a card is played.',
-    effect: 'LETTERS SHUFFLE ON PLAY',
-    apply(g) { g.scrambled = true; }
+    id: 'turbo_xp', type: 'classified', icon: '🔬',
+    name: 'RAPID RESEARCH',
+    desc: 'New technology every word. Asteroids are 20% faster.',
+    effect: 'TECH EVERY WORD · SPEED +20%',
+    apply(g) { g.levelEvery = 1; g.spawnSpeed *= 1.2; g.asteroids.forEach(a => a.speed *= 1.2); }
+  },
+  {
+    id: 'scrambled', type: 'classified', icon: '🎲',
+    name: 'CHAOS PROTOCOL',
+    desc: 'Letters scramble on each transmission. Score ×2 for every word.',
+    effect: 'LETTERS SCRAMBLE · SCORE ×2',
+    apply(g) { g.scrambled = true; g.riskMult = (g.riskMult||1) * 2; }
   },
 ];
 
@@ -719,9 +913,10 @@ function showChallengeScreen() {
   picks.forEach(ch => {
     const div = document.createElement('div');
     div.className = 'challenge-card ' + ch.type;
+    const typeLabel = {hazard:'HAZARD',asset:'ASSET',classified:'CLASSIFIED'}[ch.type] || ch.type;
     div.innerHTML = `
       <div class="ch-icon">${ch.icon}</div>
-      <div class="ch-type ${ch.type}">${ch.type}</div>
+      <div class="ch-type ${ch.type}">${typeLabel}</div>
       <div class="ch-name">${ch.name}</div>
       <div class="ch-desc">${ch.desc}</div>
       <div class="ch-effect">${ch.effect}</div>
@@ -756,8 +951,8 @@ function startGame() {
     const badge = document.getElementById('active-challenge-badge');
     badge.textContent = G_pendingChallenge.icon + ' ' + G_pendingChallenge.name;
     badge.style.display = 'block';
-    badge.style.color = G_pendingChallenge.type === 'curse' ? 'var(--danger)' : G_pendingChallenge.type === 'boon' ? 'var(--success)' : 'var(--warn)';
-    badge.style.borderLeft = '2px solid ' + (G_pendingChallenge.type === 'curse' ? 'var(--danger)' : G_pendingChallenge.type === 'boon' ? 'var(--success)' : 'var(--warn)');
+    badge.style.color = G_pendingChallenge.type === 'hazard' ? 'var(--danger)' : G_pendingChallenge.type === 'asset' ? 'var(--success)' : 'var(--warn)';
+    badge.style.borderLeft = '2px solid ' + (G_pendingChallenge.type === 'hazard' ? 'var(--danger)' : G_pendingChallenge.type === 'asset' ? 'var(--success)' : 'var(--warn)');
     refreshHUD();
   } else {
     document.getElementById('active-challenge-badge').style.display = 'none';
@@ -776,8 +971,8 @@ function newGame() {
     handSize: 5,
     asteroids: [],
     score: 0,
-    minLength: 2,
     usedWords: new Set(),
+    wordLenWeights: [0,0,70,20,10], // index=minLen, weights for 2,3,4
     gameOver: false,
     hp: 20,
     level: 1,
@@ -786,15 +981,27 @@ function newGame() {
     spawnSpeed: parseFloat(btn.dataset.speed),
     selectedCardIdx: null,
     claimAsteroidId: null,
+    targetAsteroidId: null,  // Mark II: pinned asteroid target
     claimWord: '',
     fallSpeed,
     astCount,
     scoreBoost: 0,
+    vowelGuarantee: 0,
     riskMult: 1,
+    jokers: [],
+    chainMult: 1,
+    slowMo: false,
+    comboCount: 0,
+    comboTimer: 0,
+    cardMagnet: false,
+    harvest: false,
+    chainBlast: false,
+    timeDilate: false,
+    shieldRegen: false,
     noSkip: false,
     scrambled: false,
     softStart: 0,
-    levelEvery: 3,
+    levelEvery: 2,
     frameId: null,
     lastTs: 0,
   };
@@ -803,42 +1010,76 @@ function newGame() {
   for (let i = 0; i < G.handSize; i++) dealCard();
 
   refreshUI();
-  renderHand(); refreshHUD(); renderSidebar();
+  _prevHandUids = []; renderHand(); refreshHUD(); renderSidebar();
   G.frameId = requestAnimationFrame(loop);
 }
 
 let astId = 0;
+function pickMinLen() {
+  // Returns 2, 3, or 4 based on level-weighted probability
+  const w = G.wordLenWeights || [0,0,70,20,10];
+  const r = Math.random() * (w[2] + w[3] + w[4]);
+  if (r < w[2]) return 2;
+  if (r < w[2] + w[3]) return 3;
+  return 4;
+}
+
+// Speed multiplier: higher minLen = slower (more time to build letters)
+const MIN_LEN_SPEED = { 2: 1.0, 3: 0.72, 4: 0.50 };
+
 function spawnAsteroid(slotIndex) {
   // Pull a card with a vowel to be the "A card" anchor
   let cardIdx = G.deck.findIndex(c => c.letters.some(l => 'AEIOU'.includes(l)));
   if (cardIdx === -1) cardIdx = G.deck.length - 1;
   const anchor = G.deck.splice(cardIdx, 1)[0];
 
-  const spacing = window.innerWidth / (G.astCount + 1);
+  const ml = pickMinLen();
+  const margin = 80;
+  const spacing = (window.innerWidth - margin * 2) / (G.astCount + 1);
+  const startY = slotIndex === 0 ? 80 : -120 - (slotIndex - 1) * 200;  // first always visible, rest staggered above
+
   G.asteroids.push({
     id: ++astId,
     pattern: anchor.pattern,
     patternColor: anchor.color,
     cards: [anchor],
-    x: spacing * (slotIndex + 1),
-    y: 80 + slotIndex * 160,
-    speed: G.fallSpeed * (0.7 + Math.random() * 0.6),
+    x: margin + spacing * (slotIndex + 1),
+    y: startY,
+    speed: G.fallSpeed * (0.7 + Math.random() * 0.4) * (MIN_LEN_SPEED[ml] || 1),
     wobble: Math.random() * Math.PI * 2,
     wobbleAmp: 0.3 + Math.random() * 0.8,
     active: true,
     exploding: false,
     explodeTimer: 0,
     particles: [],
+    minLen: ml,
   });
 }
 
-function dealCard() {
+function drawOne() {
+  // Draw one card from deck, reshuffling discard if needed. Returns card or null.
   if (G.deck.length === 0) {
-    if (G.discard.length === 0) return;
+    if (G.discard.length === 0) return null;
     G.deck = shuffle([...G.discard]);
     G.discard = [];
   }
-  if (G.deck.length > 0) G.hand.push(G.deck.pop());
+  if (G.deck.length === 0) return null;
+  if ((G.vowelGuarantee || 0) > 0) {
+    const vi = G.deck.findIndex(cd => cd.letters.some(l => 'AEIOU'.includes(l)));
+    if (vi !== -1) { G.vowelGuarantee--; return G.deck.splice(vi, 1)[0]; }
+  }
+  return G.deck.pop();
+}
+
+function dealCard(slotIdx) {
+  // If slotIdx given, replace that slot in-place; otherwise append
+  const card = drawOne();
+  if (!card) return;
+  if (slotIdx !== undefined && slotIdx < G.hand.length) {
+    G.hand[slotIdx] = card;
+  } else {
+    G.hand.push(card);
+  }
 }
 
 function pool(ast) {
@@ -860,11 +1101,12 @@ function playCard(asteroidId) {
   const ast = G.asteroids.find(a => a.id === asteroidId && a.active && !a.exploding);
   if (!ast) return;
 
-  const card = G.hand.splice(G.selectedCardIdx, 1)[0];
+  const playedIdx = G.selectedCardIdx;
+  const card = G.hand[playedIdx];
   ast.cards.push(card);
   G.selectedCardIdx = null;
 
-  // Scrambled challenge: shuffle letters on all asteroids when a card is played
+  // Scrambled challenge
   if (G.scrambled) {
     G.asteroids.filter(a => a.active && !a.exploding).forEach(a2 => {
       for (let i = a2.cards.length - 1; i > 0; i--) {
@@ -873,13 +1115,20 @@ function playCard(asteroidId) {
       }
     });
   }
-  // Draw replacement immediately
+  // Card Magnet: pull a free extra letter from deck onto asteroid
+  if (G.cardMagnet) {
+    const freeCard = drawOne();
+    if (freeCard) { ast.cards.push(freeCard); showFloatingScore(ast.x, ast.y - 20, '🧲+1', '#4499ff', '14px'); }
+  }
+  // Replace the played slot in-place so positions dont shift
+  dealCard(playedIdx);
+  // If hand is under size (e.g. first fill), top up at end
   while (G.hand.length < G.handSize) dealCard();
 
   renderHand();
   renderSidebar();
   refreshHUD();
-  showMsg('CARD PLAYED!', '#4499ff');
+  renderJokers();
 }
 
 function openClaim(asteroidId) {
@@ -887,11 +1136,10 @@ function openClaim(asteroidId) {
   if (!ast) return;
   G.claimAsteroidId = asteroidId;
   G.claimWord = '';
-  const p = pool(ast);
-  document.getElementById('word-avail').textContent = 'LETTERS: ' + p.join(' · ');
   document.getElementById('word-display').textContent = '';
   document.getElementById('word-display').className = '';
   document.getElementById('word-panel').classList.add('visible');
+  setTimeout(() => { const inp = document.getElementById('word-input'); inp.value = ''; inp.focus(); }, 80);
 }
 
 function confirmClaim() {
@@ -900,36 +1148,118 @@ function confirmClaim() {
   const ast = G.asteroids.find(a => a.id === G.claimAsteroidId && a.active && !a.exploding);
   if (!ast) return;
 
-  if (word.length < G.minLength) { showMsg(`NEED ${G.minLength}+ LETTERS!`, '#ffcc44'); return; }
+  const reqLen = ast.minLen || 2;
+  if (word.length < reqLen) { showMsg(`NEED ${reqLen}+ LETTERS FOR THIS ASTEROID!`, '#ffcc44'); return; }
   const p = pool(ast);
-  if (!canForm(word, p)) { showMsg('WRONG LETTERS!', '#ff3c3c'); return; }
-  if (!isValid(word)) { showMsg('NOT A WORD!', '#ff3c3c'); return; }
-  if (G.usedWords.has(word.toLowerCase())) { showMsg('ALREADY USED!', '#ffcc44'); return; }
+  if (!canForm(word, p)) { showMsg('INVALID SIGNAL!', '#ff3c3c'); return; }
+  if (!isValid(word)) { showMsg('UNKNOWN CODE!', '#ff3c3c'); return; }
+  if (G.usedWords.has(word.toLowerCase())) { showMsg('CODE ALREADY TRANSMITTED!', '#ffcc44'); return; }
+
+  // ── CRATE: word decodes the crate, show upgrade picker ──
+  if (ast.isCrate) {
+    ast.cards.forEach(cd => G.discard.push(cd));
+    document.getElementById('word-panel').classList.remove('visible');
+    document.getElementById('word-input').value = '';
+    G.claimAsteroidId = null;
+    G.claimWord = '';
+    explode(ast, '📦');
+    setTimeout(() => openCratePicker(ast.crateUpgrades), 400);
+    renderHand(); refreshHUD(); renderSidebar();
+    return;
+  }
 
   G.usedWords.add(word.toLowerCase());
-  ast.cards.forEach(c => G.discard.push(c));
-  let pts = word.length * 10 + Math.max(0, word.length - G.minLength) * 6;
+
+  // ── Joker scoring engine ──────────────────────────────────
+  const reqLen2 = ast.minLen || 2;
+  let basePts = word.length * 8 + (reqLen2 - 2) * 12;
+  let bonusPts = 0;
+  let finalMult = G.riskMult || 1;
+  if (G.chainMult) finalMult *= G.chainMult;
+
+  // Combo counter update
+  if (G.comboTimer !== undefined) {
+    G.comboCount = (G.comboCount || 0) + 1;
+    clearTimeout(G._comboTimeout);
+    G._comboTimeout = setTimeout(() => { G.comboCount = 0; renderJokers(); }, 4000);
+  }
+
+  // Score jokers (flat bonuses)
+  (G.jokers || []).forEach(j => {
+    if (j.score) bonusPts += Math.round((j.score(word, ast) || 0) * (G.chainMult || 1));
+  });
+  // Multiplier jokers (stack multiplicatively)
+  (G.jokers || []).forEach(j => {
+    if (j.multiplier) finalMult *= (j.multiplier(word, ast) || 1);
+  });
+
+  let pts = Math.round((basePts + bonusPts) * finalMult);
   if (G.scoreBoost > 0) { pts *= 2; G.scoreBoost--; }
-  if (G.riskMult) pts = Math.round(pts * G.riskMult);
+
+  // Field effects on destroy
+  const astCardCount = ast.cards.length;
+  ast.cards.forEach(cd => G.discard.push(cd));
+
+  if (G.harvest && astCardCount >= 4) {
+    dealCard(); dealCard(); renderHand();
+    showFloatingScore(ast.x, ast.y - 30, 'SALVAGE!', '#88d498');
+  }
+  if (G.shieldRegen && astCardCount >= 4) {
+    G.hp = Math.min(G.hp + 1, 30); refreshHUD();
+    showFloatingScore(ast.x, ast.y - 50, '+1 HP', '#ff6b6b');
+  }
+  if (G.chainBlast) {
+    const nearby = G.asteroids.filter(a => a.active && !a.exploding && a.id !== ast.id && Math.abs(a.x - ast.x) < 160);
+    nearby.forEach(nb => { nb.y = Math.max(-60, nb.y * 0.85); if (nb.cards.length > 1) { G.discard.push(nb.cards.pop()); showFloatingScore(nb.x, nb.y, '💥', '#ff8800', '20px'); } });
+    if (nearby.length) showFloatingScore(ast.x, ast.y + 20, `CHAIN ×${nearby.length}!`, '#ff8800');
+  }
+
+  // Time dilation
+  if (G.timeDilate && G.wordsDestroyed % 3 === 0) {
+    G.asteroids.forEach(a => { if (a.active) a._frozen = true; });
+    setTimeout(() => { G.asteroids.forEach(a => a._frozen = false); }, 2000);
+    showMsg('⏳ TEMPORAL LOCK — 2s', '#67e8f9');
+  }
+
   G.score += pts;
-  if (G.softStart > 0) { G.softStart--; G.minLength = Math.min(G.minLength + 1, 4); } else { G.minLength += 1; }
   G.wordsDestroyed += 1;
-  if (G.wordsDestroyed % (G.levelEvery || 3) === 0) setTimeout(levelUp, 400);
+
+  // Show score pop with breakdown
+  const scoreColor = pts >= 100 ? '#c084fc' : pts >= 50 ? '#ffcc44' : '#00ffcc';
+  showFloatingScore(ast.x, ast.y, '+' + pts, scoreColor, pts >= 80 ? '28px' : pts >= 40 ? '22px' : '16px');
+
+  if (G.wordsDestroyed % (G.levelEvery || 2) === 0) setTimeout(levelUp, 400);
   document.getElementById('word-panel').classList.remove('visible');
+  document.getElementById('word-input').value = '';
 
   explode(ast, word);
   refreshHUD();
-
+  renderJokers();
   renderHand(); refreshHUD(); renderSidebar();
 }
 
 
 
 function clickAsteroid(id) {
-  if (!G.gameOver && !G.paused) {
-    if (G.selectedCardIdx !== null) { playCard(id); }
-    else { openClaim(id); }
+  if (G.gameOver || G.paused) return;
+  const ast = G.asteroids.find(a => a.id === id && a.active && !a.exploding);
+  if (!ast) return;
+
+  // Word panel already open for this asteroid — ignore
+  if (document.getElementById('word-panel').classList.contains('visible') &&
+      G.claimAsteroidId === id) return;
+
+  // Close any open word panel for a different asteroid first
+  if (document.getElementById('word-panel').classList.contains('visible')) {
+    document.getElementById('word-panel').classList.remove('visible');
+    G.claimWord = '';
+    document.getElementById('word-input').value = '';
   }
+
+  // Lock target AND open word panel immediately
+  G.targetAsteroidId = id;
+  G.selectedCardIdx = null;
+  openClaim(id);
 }
 
 // ============================================================
@@ -955,6 +1285,7 @@ function spawnNewAsteroid() {
     tries++;
   } while (tries < 20 && active.some(a => Math.abs(a.x - x) < 80));
 
+  const ml2 = pickMinLen();
   G.asteroids.push({
     id: ++astId,
     pattern: anchor.pattern,
@@ -962,94 +1293,208 @@ function spawnNewAsteroid() {
     cards: [anchor],
     x,
     y: -60,
-    speed: G.spawnSpeed * (0.7 + Math.random() * 0.6),
+    speed: G.spawnSpeed * (0.7 + Math.random() * 0.4) * (MIN_LEN_SPEED[ml2] || 1),
     wobble: Math.random() * Math.PI * 2,
     wobbleAmp: 0.3 + Math.random() * 0.8,
     active: true,
     exploding: false,
     explodeTimer: 0,
     particles: [],
+    minLen: ml2,
   });
 }
 
-// ── ALL POSSIBLE UPGRADES ────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// UPGRADES — persistent jokers with synergy tags
+// Each upgrade has: id, icon, name, desc, rarity, tags[], synergy(tags), apply()
+// synergy(tags) returns a bonus desc if player already has a matching tag
+// ══════════════════════════════════════════════════════════════
 const ALL_UPGRADES = [
+
+  // ── MULTIPLIER STACK ──────────────────────────────────────
   {
-    id: 'extra_life',    icon: '❤️',  name: 'EMERGENCY SHIELD',
-    desc: 'Repair Earth for +5 HP (max 30).',
-    rarity: 'rare',
-    apply() { G.hp = Math.min(G.hp + 5, 30); refreshHUD(); }
+    id: 'vowel_engine', icon: '🔵', name: 'VOWEL DRIVE', rarity: 'standard',
+    tags: ['vowel', 'mult'],
+    desc: 'Signal lock: +3 pts per vowel decoded.',
+    synergy: t => t.has('long') ? '🔗 UPLINK: Long words are vowel-rich — stacks hard!' : null,
+    apply() { G.jokers.push({ id:'vowel_engine', icon:'🔵', label:'+3/vowel', tags:['vowel','mult'],
+      score(word){ return word.split('').filter(l=>'AEIOU'.includes(l)).length * 3; }
+    }); }
   },
   {
-    id: 'slow_all',      icon: '🧊',  name: 'DEEP FREEZE',
-    desc: 'All asteroids slow down by 25%.',
-    rarity: 'common',
-    apply() { G.asteroids.forEach(a => { if (a.active) a.speed *= 0.75; }); G.spawnSpeed *= 0.75; }
+    id: 'long_word', icon: '📏', name: 'RANGE AMPLIFIER', rarity: 'standard',
+    tags: ['long', 'mult'],
+    desc: 'Range boost: +8 pts per letter beyond 3.',
+    synergy: t => t.has('vowel') ? '🔗 UPLINK: More vowels = longer words = more pts!' : null,
+    apply() { G.jokers.push({ id:'long_word', icon:'📏', label:'+8 per extra letter', tags:['long','mult'],
+      score(word){ return Math.max(0, word.length - 3) * 8; }
+    }); }
   },
   {
-    id: 'clear_card',    icon: '✂️',  name: 'LASER TRIM',
-    desc: 'Remove 1 random letter from the most-loaded asteroid.',
-    rarity: 'common',
-    apply() {
-      const heavy = G.asteroids.filter(a => a.active && !a.exploding && a.cards.length > 1)
-        .sort((a,b) => b.cards.length - a.cards.length)[0];
-      if (heavy) { G.discard.push(heavy.cards.pop()); }
-    }
+    id: 'double_mult', icon: '✖️', name: 'REACTOR CORE', rarity: 'advanced',
+    tags: ['mult', 'global'],
+    desc: 'Core overcharge: all systems output ×1.5.',
+    synergy: t => t.has('mult') ? '🔗 UPLINK: Multiplies your multipliers!' : null,
+    apply() { G.chainMult = (G.chainMult || 1) * 1.5; }
   },
   {
-    id: 'extra_card',    icon: '🃏',  name: 'DEEP RESERVES',
-    desc: 'Permanently draw +1 extra card each turn.',
-    rarity: 'rare',
+    id: 'asteroid_bounty', icon: '💰', name: 'SALVAGE OPS', rarity: 'standard',
+    tags: ['asteroid', 'mult'],
+    desc: 'Salvage bonus: +12 pts per card recovered from target.',
+    synergy: t => t.has('stack') ? '🔗 UPLINK: Stack cards on asteroids for big cash!' : null,
+    apply() { G.jokers.push({ id:'asteroid_bounty', icon:'💰', label:'+12/card on asteroid', tags:['asteroid','mult'],
+      score(word, ast){ return (ast ? ast.cards.length : 0) * 12; }
+    }); }
+  },
+  {
+    id: 'rare_letters', icon: '💎', name: 'EXOTIC PAYLOAD',  rarity: 'advanced',
+    tags: ['letters', 'mult'],
+    desc: 'Exotic matter: +15 pts per rare letter (J/Q/X/Z) used.',
+    synergy: t => t.has('vowel') ? '🔗 UPLINK: Rare+vowel words score insane pts!' : null,
+    apply() { G.jokers.push({ id:'rare_letters', icon:'💎', label:'+15 per JQXZ', tags:['letters','mult'],
+      score(word){ return word.split('').filter(l=>'JQXZ'.includes(l)).length * 15; }
+    }); }
+  },
+  {
+    id: 'combo_counter', icon: '🔥', name: 'KILLSTREAK', rarity: 'advanced',
+    tags: ['combo', 'mult'],
+    desc: 'Killstreak: each consecutive destroy adds +10% score. Resets if you skip 4+ sec.',
+    synergy: t => t.has('long') ? '🔗 UPLINK: Stay in the zone for explosive scores!' : null,
+    apply() { G.comboCount = 0; G.comboTimer = 0; G.jokers.push({ id:'combo_counter', icon:'🔥', label:'combo ×', tags:['combo','mult'],
+      score(word){ const mult = 1 + (G.comboCount || 0) * 0.1; return Math.round(word.length * 5 * (mult - 1)); }
+    }); }
+  },
+  {
+    id: 'high_minlen', icon: '🏆', name: 'PRECISION STRIKE',  rarity: 'advanced',
+    tags: ['minlen', 'mult'],
+    desc: '+20 pts for destroying a high-threat (4+) target.',
+    synergy: t => t.has('long') ? '🔗 UPLINK: Hard asteroids + long words = max pts!' : null,
+    apply() { G.jokers.push({ id:'high_minlen', icon:'🏆', label:'+20 per 4+ asteroid', tags:['minlen','mult'],
+      score(word, ast){ return (ast && ast.minLen >= 4) ? 20 : (ast && ast.minLen >= 3) ? 8 : 0; }
+    }); }
+  },
+  {
+    id: 'palindrome', icon: '🪞', name: 'PALINDROME PROTOCOL', rarity: 'classified',
+    tags: ['special', 'mult'],
+    desc: 'Palindrome lock: ×3 score if your transmission is a palindrome.',
+    synergy: () => null,
+    apply() { G.jokers.push({ id:'palindrome', icon:'🪞', label:'palindrome ×3', tags:['special'],
+      multiplier(word){ const w = word.toLowerCase(); return w === w.split('').reverse().join('') && w.length > 1 ? 3 : 1; }
+    }); }
+  },
+  {
+    id: 'short_sharp', icon: '⚡', name: 'RAPID FIRE', rarity: 'standard',
+    tags: ['short', 'speed'],
+    desc: 'Rapid fire: +20 pts for short-burst transmissions (≤3 letters). Draw 1 extra card after.',
+    synergy: t => t.has('combo') ? '🔗 UPLINK: Fast combos with short words!' : null,
+    apply() { G.jokers.push({ id:'short_sharp', icon:'⚡', label:'+20 short word', tags:['short','speed'],
+      score(word){ if (word.length <= 3) { setTimeout(() => { dealCard(); renderHand(); }, 100); return 20; } return 0; }
+    }); }
+  },
+
+  // ── FIELD EFFECTS ─────────────────────────────────────────
+  {
+    id: 'slow_field', icon: '🧊', name: 'CRYO FIELD', rarity: 'standard',
+    tags: ['field', 'slow'],
+    desc: 'Cryo field deployed: all targets 20% slower permanently.',
+    synergy: t => t.has('stack') ? '🔗 UPLINK: More time to stack cards!' : null,
+    apply() { G.asteroids.forEach(a => { if (a.active) a.speed *= 0.8; }); G.spawnSpeed *= 0.8; }
+  },
+  {
+    id: 'card_magnet', icon: '🧲', name: 'TRACTOR BEAM', rarity: 'advanced',
+    tags: ['field', 'stack'],
+    desc: 'Tractor beam: each card played pulls a free letter onto the target.',
+    synergy: t => t.has('asteroid') ? '🔗 UPLINK: Pack asteroids with letters for bounty!' : null,
+    apply() { G.cardMagnet = true; }
+  },
+  {
+    id: 'harvest', icon: '🌾', name: 'SALVAGE SWEEP', rarity: 'advanced',
+    tags: ['field', 'letters', 'stack'],
+    desc: 'Salvage sweep: destroy a loaded target (4+ cards) to draw 2 extra cards.',
+    synergy: t => t.has('asteroid') ? '🔗 UPLINK: Load up, destroy, reload fast!' : null,
+    apply() { G.harvest = true; }
+  },
+  {
+    id: 'chain_explode', icon: '💥', name: 'SHOCKWAVE', rarity: 'classified',
+    tags: ['field', 'nuke'],
+    desc: 'Shockwave: destruction sends a blast that strips and pushes nearby targets. (pushes them back 15%).',
+    synergy: t => t.has('combo') ? '🔗 UPLINK: Chain explosions keep combo alive!' : null,
+    apply() { G.chainBlast = true; }
+  },
+  {
+    id: 'time_warp', icon: '⏳', name: 'TEMPORAL SHIELD', rarity: 'classified',
+    tags: ['field', 'slow'],
+    desc: 'Temporal shield: every 3 transmissions, all targets freeze for 2 seconds.',
+    synergy: t => t.has('long') ? '🔗 UPLINK: Freeze buys time for big words!' : null,
+    apply() { G.timeDilate = true; }
+  },
+  {
+    id: 'shield_regen', icon: '🛡️', name: 'NANO-REPAIR', rarity: 'advanced',
+    tags: ['survival'],
+    desc: 'Nano-repair: destroying a loaded target (4+ cards) repairs +1 HP.',
+    synergy: t => t.has('stack') ? '🔗 UPLINK: Stack to heal as you destroy!' : null,
+    apply() { G.shieldRegen = true; }
+  },
+  {
+    id: 'overload', icon: '🌋', name: 'MASS DRIVER', rarity: 'classified',
+    tags: ['special', 'mult', 'stack'],
+    desc: 'Mass driver: score multiplied by the number of cards on the target. ×1 per card.',
+    synergy: t => t.has('asteroid') ? '🔗 UPLINK: Stack + bounty + overload = MASSIVE!' : null,
+    apply() { G.jokers.push({ id:'overload', icon:'🌋', label:'×cards on asteroid', tags:['special','mult'],
+      multiplier(word, ast){ return ast ? Math.max(1, ast.cards.length) : 1; }
+    }); }
+  },
+  {
+    id: 'hp_to_pts', icon: '❤️‍🔥', name: 'LAST STAND', rarity: 'classified',
+    tags: ['survival', 'mult'],
+    desc: 'Last stand: score ×(20÷HP) — the lower your shields, the higher the damage output.',
+    synergy: t => t.has('mult') ? '🔗 UPLINK: Risky but astronomical scoring!' : null,
+    apply() { G.jokers.push({ id:'hp_to_pts', icon:'❤️‍🔥', label:'×(20÷HP)', tags:['survival','mult'],
+      multiplier(word){ return Math.max(1, Math.round(20 / Math.max(1, G.hp))); }
+    }); }
+  },
+
+  // ── UTILITY ───────────────────────────────────────────────
+  {
+    id: 'extra_card', icon: '🃏', name: 'EXPANDED ARSENAL', rarity: 'advanced',
+    tags: ['utility', 'stack'],
+    desc: 'Arsenal expanded: hand size +1 permanently.',
+    synergy: t => t.has('letters') ? '🔗 UPLINK: More letters = more options!' : null,
     apply() { G.handSize += 1; while (G.hand.length < G.handSize) dealCard(); renderHand(); }
   },
   {
-    id: 'word_reset',    icon: '🔄',  name: 'FREQUENCY RESET',
-    desc: 'Drop the minimum word length back by 2.',
-    rarity: 'epic',
-    apply() { G.minLength = Math.max(2, G.minLength - 2); refreshHUD(); }
+    id: 'shield', icon: '🛸', name: 'HULL REPAIR', rarity: 'advanced',
+    tags: ['survival'],
+    desc: 'Hull repair: restore +5 HP to Earth shields.',
+    synergy: () => null,
+    apply() { G.hp = Math.min(G.hp + 5, 30); refreshHUD(); }
   },
   {
-    id: 'nuke',          icon: '💥',  name: 'ORBITAL STRIKE',
-    desc: 'Instantly destroy the asteroid closest to Earth.',
-    rarity: 'epic',
+    id: 'nuke', icon: '💣', name: 'KINETIC STRIKE', rarity: 'classified',
+    tags: ['utility', 'nuke'],
+    desc: 'Kinetic strike: instantly destroy the closest inbound target.',
+    synergy: t => t.has('combo') ? '🔗 UPLINK: Keep combo streak alive in emergencies!' : null,
     apply() {
-      const closest = G.asteroids.filter(a => a.active && !a.exploding)
-        .sort((a,b) => b.y - a.y)[0];
-      if (closest) { closest.cards.forEach(cd => G.discard.push(cd)); explode(closest, 'STRIKE'); }
+      const cl = G.asteroids.filter(a=>a.active&&!a.exploding).sort((a,b)=>b.y-a.y)[0];
+      if (cl) { cl.cards.forEach(cd=>G.discard.push(cd)); explode(cl,'STRIKE'); }
     }
   },
   {
-    id: 'score_boost',   icon: '⭐',  name: 'SCORE MULTIPLIER',
-    desc: 'Next 5 words score double points.',
-    rarity: 'common',
-    apply() { G.scoreBoost = (G.scoreBoost || 0) + 5; }
+    id: 'push_back', icon: '🌊', name: 'REPULSOR WAVE', rarity: 'standard',
+    tags: ['utility', 'field'],
+    desc: 'Repulsor wave: push all targets 25% back toward deep space.',
+    synergy: () => null,
+    apply() { G.asteroids.forEach(a=>{ if(a.active&&!a.exploding) a.y=Math.max(-60,a.y*0.75); }); }
   },
   {
-    id: 'push_back',     icon: '🌊',  name: 'GRAVITY PULSE',
-    desc: 'Push all asteroids 20% back up the screen.',
-    rarity: 'rare',
-    apply() {
-      G.asteroids.forEach(a => { if (a.active && !a.exploding) a.y = Math.max(-60, a.y * 0.8); });
-    }
-  },
-  {
-    id: 'vacuum',        icon: '🌀',  name: 'VOID VACUUM',
-    desc: 'Shuffle all letters on all asteroids back into the deck.',
-    rarity: 'epic',
-    apply() {
-      G.asteroids.forEach(a => {
-        if (!a.active || a.exploding || a.cards.length <= 1) return;
-        while (a.cards.length > 1) G.discard.push(a.cards.pop());
-      });
-    }
-  },
-  {
-    id: 'speed_up_score', icon: '🎯', name: 'RISK TAKER',
-    desc: 'Asteroids fall 20% faster, but every word scores 50% more.',
-    rarity: 'rare',
-    apply() { G.spawnSpeed *= 1.2; G.asteroids.forEach(a => { if(a.active) a.speed *= 1.2; }); G.riskMult = (G.riskMult||1) * 1.5; }
+    id: 'word_reset', icon: '🔄', name: 'COMMS RESET', rarity: 'advanced',
+    tags: ['utility'],
+    desc: 'Comms reset: recalibrate — word length difficulty resets.',
+    synergy: () => null,
+    apply() { G.wordLenWeights = [0,0,80,15,5]; }
   },
 ];
+
 
 function getRandomUpgrades(n) {
   const pool = [...ALL_UPGRADES];
@@ -1063,39 +1508,21 @@ function getRandomUpgrades(n) {
 
 function levelUp() {
   G.level += 1;
-  // Increase difficulty: speed up slightly, allow more active asteroids
-  G.spawnSpeed *= 1.12;
-  G.activeCap = Math.min(G.astCount + Math.floor(G.level / 2), 8);
+  G.spawnSpeed *= 1.08;
+  G.activeCap = Math.min(G.astCount + Math.floor(G.level / 2), 10);
+  // Tighten upgrade cadence at high levels: every 1 word after level 8
+  if (G.level >= 8) G.levelEvery = 1;
+  else if (G.level >= 5) G.levelEvery = 2;
+  // Shift word length weights: more 3s and 4s as levels increase
+  const w = G.wordLenWeights;
+  const shift = Math.min(G.level * 3, 40); // cap shift at level ~13
+  w[2] = Math.max(10, 70 - shift);
+  w[3] = Math.min(50, 20 + shift * 0.6);
+  w[4] = Math.min(40, 10 + shift * 0.4);
   flashScreen('#ffcc44');
-
-  // Pause game and show upgrade screen
-  G.paused = true;
-  document.getElementById('upgrade-level-badge').textContent = 'LEVEL ' + G.level;
+  // Mark II: spawn a supply crate instead of pausing
   const upgrades = getRandomUpgrades(3);
-  const container = document.getElementById('upgrade-cards');
-  container.innerHTML = '';
-  upgrades.forEach(upg => {
-    const div = document.createElement('div');
-    div.className = 'upgrade-card';
-    div.innerHTML = `
-      <div class="upgrade-icon">${upg.icon}</div>
-      <div class="upgrade-name">${upg.name}</div>
-      <div class="upgrade-desc">${upg.desc}</div>
-      <div class="upgrade-rarity rarity-${upg.rarity}">${upg.rarity.toUpperCase()}</div>
-    `;
-    div.addEventListener('click', () => applyUpgrade(upg));
-    container.appendChild(div);
-  });
-  document.getElementById('upgrade-overlay').classList.remove('hidden');
-}
-
-function applyUpgrade(upg) {
-  document.getElementById('upgrade-overlay').classList.add('hidden');
-  upg.apply();
-  G.paused = false;
-  // Spawn a fresh asteroid after upgrade
-  setTimeout(() => { if (!G.gameOver) spawnNewAsteroid(); }, 500);
-  showMsg(upg.name + '!', '#ffcc44');
+  setTimeout(() => { if (!G.gameOver) spawnCrate(upgrades); }, 300);
 }
 
 // ============================================================
@@ -1105,6 +1532,7 @@ function explode(ast, word) {
   ast.exploding = true;
   ast.explodeTimer = 0;
   ast.particles = [];
+  if (G.targetAsteroidId === ast.id) { G.targetAsteroidId = null; renderHand(); }
   for (let i = 0; i < 28; i++) {
     const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 5;
     ast.particles.push({ x:ast.x, y:ast.y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-1, r:3+Math.random()*7, color:['#c49a4a','#ff8800','#ffcc44','#fff','#00ffcc'][Math.floor(Math.random()*5)], alpha:1 });
@@ -1118,8 +1546,9 @@ function impact(ast) {
   ast.active = false;
   ast.cards.forEach(card => G.discard.push(card));
   // Damage scales with asteroid size: 10 base + 5 per extra card
-  const dmg = 5 + (ast.cards.length - 1) * 2;
+  const dmg = Math.max(1, 5 + (ast.cards.length - 1) * 2);
   G.hp = Math.max(0, G.hp - dmg);
+  G.comboCount = 0; renderJokers();
   flashScreen('#ff3c3c');
   showMsg(`IMPACT! −${dmg} HP`, '#ff3c3c');
   refreshHUD();
@@ -1138,7 +1567,8 @@ function impact(ast) {
 function loop(ts) {
   if (G.gameOver) return;
   if (G.paused) { G.frameId = requestAnimationFrame(loop); return; }
-  const dt = Math.min((ts - G.lastTs) / 16.7, 3);
+  const dtRaw = Math.min((ts - G.lastTs) / 16.7, 3);
+  const dt = G.slowMo ? dtRaw * 0.12 : dtRaw;
   G.lastTs = ts;
 
   tickStars();
@@ -1161,18 +1591,36 @@ function loop(ts) {
       return;
     }
 
-    // Passive drift
-    ast.y += ast.speed * dt;
+    // Passive drift (skip if frozen by Time Dilation)
+    if (!ast._frozen) ast.y += ast.speed * dt;
+
+    // Crates that reach Earth are lost — no damage
+    if (ast.isCrate && ast.y > earthY()) {
+      ast.active = false;
+      showMsg('📦 CRATE LOST — MISSED OPPORTUNITY', '#ff8800');
+      return;
+    }
     ast.wobble += 0.007;
     ast.x += Math.sin(ast.wobble) * ast.wobbleAmp * 0.12;
     ast.x = Math.max(55, Math.min(GC.width - 55, ast.x));
 
-    if (ast.y >= ground) { impact(ast); return; }
+    // Crates that reach Earth are lost silently
+    if (ast.isCrate && ast.y > earthY()) {
+      ast.active = false;
+      showMsg('📦 CRATE LOST', '#ff8800');
+      return;
+    }
+
+    if (ast.y >= ground && !ast.isCrate) { impact(ast); return; }
 
     const claimable = G.claimAsteroidId === ast.id;
     const clickable = G.selectedCardIdx !== null && !claimable;
-    const danger = ast.y > ground * 0.65 && ast.y > 0;
-    drawAsteroid(ast, claimable, danger, clickable);
+    const danger = !ast.isCrate && ast.y > ground * 0.65 && ast.y > 0;
+    if (ast.isCrate) {
+      drawCrate(ast);
+    } else {
+      drawAsteroid(ast, claimable, danger, clickable);
+    }
   });
 
   G.frameId = requestAnimationFrame(loop);
@@ -1233,7 +1681,127 @@ function drawAsteroid(ast, isTarget, isDanger, clickHint) {
     c.fillStyle='rgba(0,0,0,0.5)'; c.fillText(l, lx+1.5, ly+1.5);
     c.fillStyle='#fff'; c.fillText(l, lx, ly);
   });
+
+  // MinLen badge
+  if (ast.minLen && ast.minLen > 2) {
+    const badgeR = r * 0.32;
+    const bx = r * 0.62, by = -r * 0.62;
+    c.beginPath(); c.arc(bx, by, badgeR, 0, Math.PI*2);
+    c.fillStyle = ast.minLen === 4 ? '#c084fc' : '#f59e0b';
+    c.fill();
+    c.font = `bold ${Math.round(badgeR * 1.1)}px 'Orbitron',monospace`;
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = '#000'; c.fillText(ast.minLen + '+', bx + 1, by + 1);
+    c.fillStyle = '#fff'; c.fillText(ast.minLen + '+', bx, by);
+  }
+
+  // Target lock ring (Mark II)
+  if (ast.id === G.targetAsteroidId) {
+    const tr = r + 10;
+    c.beginPath(); c.arc(0, 0, tr, 0, Math.PI*2);
+    c.strokeStyle = `rgba(0,255,204,${0.5 + 0.5 * Math.sin(Date.now()/200)})`;
+    c.lineWidth = 2;
+    c.setLineDash([6,4]); c.stroke(); c.setLineDash([]);
+    // Corner tick marks
+    [0, Math.PI/2, Math.PI, Math.PI*1.5].forEach(angle => {
+      const tx = Math.cos(angle) * tr, ty = Math.sin(angle) * tr;
+      c.beginPath();
+      c.moveTo(tx * 0.82, ty * 0.82);
+      c.lineTo(tx * 1.18, ty * 1.18);
+      c.strokeStyle = '#00ffcc'; c.lineWidth = 2; c.stroke();
+    });
+  }
+
+  // Frozen overlay
+  if (ast._frozen) {
+    c.beginPath(); c.arc(0, 0, r, 0, Math.PI*2);
+    c.fillStyle = 'rgba(100,220,255,0.18)'; c.fill();
+    c.strokeStyle = '#67e8f9'; c.lineWidth = 2; c.stroke();
+    c.font = `bold ${Math.round(r*0.35)}px serif`;
+    c.textAlign='center'; c.textBaseline='middle';
+    c.fillStyle='rgba(100,220,255,0.7)'; c.fillText('❄️', 0, 0);
+  }
+
   c.restore();
+}
+
+
+function drawCrate(ast) {
+  const ctx = GC2;
+  ctx.save();
+  ctx.translate(ast.x, ast.y);
+
+  const t = Date.now();
+  const pulse = 0.6 + 0.4 * Math.sin(t / 320);
+  const W = 52, H = 58; // half-width, half-height
+
+  // ── Outer glow ─────────────────────────────────────────────
+  ctx.shadowColor = `rgba(255,200,0,${pulse * 0.9})`;
+  ctx.shadowBlur = 28;
+  ctx.strokeStyle = `rgba(255,200,0,${0.3 + pulse * 0.4})`;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(-W - 6, -H - 6, (W+6)*2, (H+6)*2);
+  ctx.shadowBlur = 0;
+
+  // ── Pod body ───────────────────────────────────────────────
+  // Main dark hull
+  ctx.fillStyle = '#0d0a02';
+  ctx.fillRect(-W, -H, W*2, H*2);
+
+  // Hull panels — slightly lighter sections
+  ctx.fillStyle = 'rgba(255,180,0,0.07)';
+  ctx.fillRect(-W, -H, W*2, H*0.42);   // top panel
+  ctx.fillRect(-W, H*0.3, W*2, H*0.7); // bottom panel
+
+  // ── Gold border ────────────────────────────────────────────
+  ctx.shadowColor = `rgba(255,200,0,${pulse})`;
+  ctx.shadowBlur = 10;
+  ctx.strokeStyle = `rgba(255,200,0,${0.7 + pulse * 0.3})`;
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(-W, -H, W*2, H*2);
+  ctx.shadowBlur = 0;
+
+  // ── Horizontal divider line ────────────────────────────────
+  ctx.strokeStyle = `rgba(255,170,0,${pulse * 0.7})`;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-W, -H*0.12); ctx.lineTo(W, -H*0.12); ctx.stroke();
+
+  // ── Corner brackets ────────────────────────────────────────
+  const bl = 10; // bracket length
+  ctx.strokeStyle = `rgba(255,220,60,${0.8 + pulse * 0.2})`;
+  ctx.lineWidth = 2.5;
+  [[-W,-H,1,1],[ W,-H,-1,1],[-W,H,1,-1],[W,H,-1,-1]].forEach(([cx,cy,sx,sy]) => {
+    ctx.beginPath(); ctx.moveTo(cx+sx*bl, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy+sy*bl); ctx.stroke();
+  });
+
+  // ── Warning stripes on sides ───────────────────────────────
+  ctx.save();
+  ctx.beginPath(); ctx.rect(-W, -H, W*2, H*2); ctx.clip();
+  ctx.strokeStyle = `rgba(255,150,0,${pulse * 0.18})`;
+  ctx.lineWidth = 5;
+  for (let i = -H*2; i < H*2; i += 14) {
+    ctx.beginPath(); ctx.moveTo(-W, i); ctx.lineTo(-W+14, i+14); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W-14, i); ctx.lineTo(W, i+14); ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── Upgrade icon (top half) ────────────────────────────────
+  ctx.font = '28px serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(ast.crateUpgrades ? ast.crateUpgrades[0].icon : '📦', 0, -H*0.35);
+
+  // ── Letters (bottom section) ───────────────────────────────
+  const letters = pool(ast).sort();
+  ctx.font = `bold 10px 'Orbitron',monospace`;
+  ctx.fillStyle = `rgba(255,220,80,${0.75 + pulse * 0.25})`;
+  ctx.fillText(letters.join(' '), 0, H * 0.58);
+
+  // ── "DECODE" label ─────────────────────────────────────────
+  ctx.font = `bold 7px 'Orbitron',monospace`;
+  ctx.fillStyle = `rgba(255,180,0,${pulse * 0.6})`;
+  ctx.fillText('DECODE', 0, H * 0.82);
+
+  ctx.restore();
 }
 
 function drawExplosion(ast) {
@@ -1250,15 +1818,194 @@ function drawExplosion(ast) {
   GC2.strokeStyle='#00ffcc'; GC2.lineWidth=2; GC2.stroke(); GC2.restore();
 }
 
+
+
+function spawnCrate(upgrades) {
+  // Pick x position away from existing asteroids
+  const active = G.asteroids.filter(a => a.active && !a.exploding);
+  let x, tries = 0;
+  do {
+    x = 80 + Math.random() * (GC.width - 160);
+    tries++;
+  } while (tries < 20 && active.some(a => Math.abs(a.x - x) < 100));
+
+  // Pull 2-3 letters for the crate (easy word requirement)
+  const letters = [];
+  for (let i = 0; i < 3; i++) {
+    if (G.deck.length === 0 && G.discard.length > 0) { G.deck = shuffle([...G.discard]); G.discard = []; }
+    if (G.deck.length > 0) letters.push(G.deck.pop());
+  }
+  if (letters.length === 0) {
+    // No cards available — skip crate, go straight to picker
+    openCratePicker(upgrades);
+    return;
+  }
+
+  G.asteroids.push({
+    id: ++astId,
+    isCrate: true,
+    crateUpgrades: upgrades,
+    cards: letters,
+    x, y: -70,
+    speed: (G.spawnSpeed || 0.4) * 0.55, // crates fall slower
+    wobble: Math.random() * Math.PI*2,
+    wobbleAmp: 0.15,
+    active: true, exploding: false, explodeTimer: 0, particles: [],
+    minLen: 2,
+    _crateAngle: 0,
+  });
+
+  showMsg('📦 SUPPLY CRATE INBOUND — DECODE TO CLAIM', '#ffcc44');
+}
+
+
+function openCratePicker(upgrades) {
+  const picker = document.getElementById('crate-picker');
+  Array.from(picker.children).forEach(el => { if (el.classList.contains('upgrade-card')) el.remove(); });
+
+  // Engage slow motion
+  G.slowMo = true;
+  document.getElementById('slowmo-overlay').classList.add('active');
+  document.getElementById('slowmo-timer').classList.add('active');
+
+  const currentTags = new Set((G.jokers||[]).flatMap(j=>j.tags||[]));
+  upgrades.forEach(upg => {
+    const div = document.createElement('div');
+    div.className = 'upgrade-card';
+    const syn = upg.synergy ? upg.synergy(currentTags) : null;
+    div.innerHTML = `
+      <div class="upgrade-icon">${upg.icon}</div>
+      <div class="upgrade-name">${upg.name}</div>
+      <div class="upgrade-desc">${upg.desc}</div>
+      ${syn ? `<div class="upgrade-synergy">${syn}</div>` : ''}
+      <div class="upgrade-rarity rarity-${upg.rarity}">${upg.rarity.toUpperCase()}</div>
+    `;
+    if (syn) div.style.borderColor = 'rgba(0,255,204,0.5)';
+    div.addEventListener('click', () => {
+      upg.apply();
+      renderJokers();
+      showMsg(upg.name + ' INSTALLED!', '#ffcc44');
+      closeCratePicker(picker);
+    });
+    picker.appendChild(div);
+  });
+  picker.classList.remove('hidden');
+}
+
+function closeCratePicker(picker) {
+  G.slowMo = false;
+  document.getElementById('slowmo-overlay').classList.remove('active');
+  document.getElementById('slowmo-timer').classList.remove('active');
+  picker.style.animation = 'slide-out-right 0.22s ease-in forwards';
+  setTimeout(() => {
+    picker.classList.add('hidden');
+    picker.style.animation = '';
+  }, 220);
+}
+
+
+function pickCardLetter(card, cardIdx) {
+  // If both letters same, just add it
+  if (card.letters[0] === card.letters[1]) {
+    G.claimWord += card.letters[0];
+    updateWordDisplay();
+    return;
+  }
+  // Show inline picker on the card slot
+  const slots = document.querySelectorAll('.card-slot');
+  const slot = slots[cardIdx];
+  if (!slot) { G.claimWord += card.letters[0]; updateWordDisplay(); return; }
+
+  // If already showing picker for this slot, dismiss
+  if (slot.querySelector('.letter-pick')) { slot.querySelector('.letter-pick').remove(); return; }
+  // Remove any other pickers
+  document.querySelectorAll('.letter-pick').forEach(el => el.remove());
+
+  const picker = document.createElement('div');
+  picker.className = 'letter-pick';
+  picker.innerHTML = `
+    <div class="lp-btn" data-l="${card.letters[0]}">${card.letters[0]}</div>
+    <div class="lp-btn" data-l="${card.letters[1]}">${card.letters[1]}</div>
+  `;
+  slot.appendChild(picker);
+
+  picker.querySelectorAll('.lp-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      G.claimWord += btn.dataset.l;
+      updateWordDisplay();
+      picker.remove();
+    });
+  });
+
+  // Auto-dismiss if clicked elsewhere
+  setTimeout(() => {
+    document.addEventListener('click', function dismiss() {
+      picker.remove();
+      document.removeEventListener('click', dismiss);
+    }, { once: true });
+  }, 50);
+}
+
+// ── JOKER TRAY RENDERER ────────────────────────────────────
+function renderJokers() {
+  const tray = document.getElementById('joker-tray');
+  if (!tray) return;
+  tray.innerHTML = '';
+  (G.jokers || []).forEach(j => {
+    const chip = document.createElement('div');
+    chip.className = 'joker-chip';
+    const detail = j.id === 'combo_counter' ? ` ×${(G.comboCount||0)+1}` : '';
+    chip.innerHTML = `<span class="joker-icon">${j.icon}</span><span class="joker-label">${j.label}${detail}</span>`;
+    chip.style.borderColor = 'rgba(0,255,204,0.25)';
+    tray.appendChild(chip);
+  });
+  // Show global mults as chips too
+  if (G.chainMult > 1) {
+    const chip = document.createElement('div');
+    chip.className = 'joker-chip';
+    chip.innerHTML = `<span class="joker-icon">✖️</span><span class="joker-label">chain ×${G.chainMult.toFixed(1)}</span>`;
+    chip.style.borderColor = 'rgba(255,100,100,0.35)';
+    tray.appendChild(chip);
+  }
+}
+
+function pulseJoker(id) {
+  document.querySelectorAll('.joker-chip').forEach((el, i) => {
+    if (G.jokers[i] && G.jokers[i].id === id) {
+      el.classList.remove('pulse');
+      void el.offsetWidth;
+      el.classList.add('pulse');
+    }
+  });
+}
+
+function showFloatingScore(x, y, text, color, size) {
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = text;
+  el.style.left = (x - 30) + 'px';
+  el.style.top = (y - 20) + 'px';
+  el.style.color = color || '#00ffcc';
+  el.style.fontSize = size || '18px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
 // ============================================================
 // HIT DETECTION
 // ============================================================
 function astAt(mx, my) {
   for (const ast of G.asteroids) {
     if (!ast.active || ast.exploding) continue;
-    const r = astRadius(ast) + 16;
     const dx = mx - ast.x, dy = my - ast.y;
-    if (dx*dx+dy*dy <= r*r) return ast;
+    if (ast.isCrate) {
+      // Square hit detection for crates
+      if (Math.abs(dx) <= 52 && Math.abs(dy) <= 52) return ast;
+    } else {
+      const r = astRadius(ast) + 16;
+      if (dx*dx+dy*dy <= r*r) return ast;
+    }
   }
   return null;
 }
@@ -1274,27 +2021,78 @@ GC.addEventListener('click', e => {
 // ============================================================
 // UI
 // ============================================================
+let _prevHandUids = [];
+
 function renderHand() {
   const container = document.getElementById('hand-cards');
-  container.innerHTML = '';
-  G.hand.forEach((card, i) => {
-    const div = document.createElement('div');
-    const isSelected = i === G.selectedCardIdx;
-    const disabled = false;
-    div.className = 'card' + (isSelected ? ' selected' : '') + (disabled ? ' disabled' : '');
-    div.innerHTML = `<div class="card-letter">${card.letters[0]}</div><div class="card-divider"></div><div class="card-letter bot">${card.letters[1]}</div><div class="card-dot" style="background:${card.color};box-shadow:0 0 5px ${card.color}"></div>`;
-    if (!disabled) {
-      div.addEventListener('click', () => {
-        G.selectedCardIdx = (G.selectedCardIdx === i) ? null : i;
-        renderHand();
-        document.getElementById('instruct').textContent = G.selectedCardIdx !== null
-          ? `[${card.letters.join('/')}] SELECTED · CLICK AN ASTEROID TO PLAY`
-          : 'SELECT A CARD FROM YOUR HAND · THEN CLICK AN ASTEROID TO PLAY IT';
-      });
-    }
-    container.appendChild(div);
-  });
+  const slots = Array.from(container.children);
+  const needsFullRebuild = slots.length !== G.hand.length;
+
+  if (needsFullRebuild) {
+    // Full rebuild (game start or hand size change) — animate all cards in
+    container.innerHTML = '';
+    _prevHandUids = [];
+    G.hand.forEach((card, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'card-slot';
+      slot.appendChild(makeCardEl(card, i, true));
+      container.appendChild(slot);
+    });
+  } else {
+    // Per-slot update — only touch slots where the card changed
+    G.hand.forEach((card, i) => {
+      const isNew = _prevHandUids[i] !== card.uid;
+      const isSelected = i === G.selectedCardIdx;
+      const slot = slots[i];
+      if (!slot) return;
+      if (isNew) {
+        // Animate old card out, new card in — same slot, no position shift
+        const oldEl = slot.querySelector('.card');
+        if (oldEl) {
+          oldEl.classList.add('play-out');
+          const newEl = makeCardEl(card, i, false);
+          newEl.style.opacity = '0';
+          slot.appendChild(newEl);
+          setTimeout(() => {
+            oldEl.remove();
+            newEl.classList.add('deal-in');
+            newEl.style.opacity = '';
+          }, 160);
+        } else {
+          slot.appendChild(makeCardEl(card, i, true));
+        }
+      } else {
+        // Same card — just update selection class
+        const el = slot.querySelector('.card');
+        if (el) el.className = 'card' + (isSelected ? ' selected' : '');
+      }
+    });
+  }
+
+  _prevHandUids = G.hand.map(c => c.uid);
   document.getElementById('deck-info').textContent = `DECK: ${G.deck.length} · DISCARD: ${G.discard.length}`;
+}
+
+function makeCardEl(card, i, animate) {
+  const isSelected = i === G.selectedCardIdx;
+  const div = document.createElement('div');
+  div.className = 'card' + (isSelected ? ' selected' : '') + (animate ? ' deal-in' : '');
+  div.dataset.uid = card.uid;
+  div.innerHTML = `<div class="card-letter">${card.letters[0]}</div><div class="card-divider"></div><div class="card-letter bot">${card.letters[1]}</div><div class="card-dot" style="background:${card.color};box-shadow:0 0 5px ${card.color}"></div>`;
+  div.addEventListener('click', () => {
+    if (G.targetAsteroidId !== null) {
+      // Auto-play onto pinned asteroid
+      G.selectedCardIdx = i;
+      playCard(G.targetAsteroidId);
+    } else {
+      G.selectedCardIdx = (G.selectedCardIdx === i) ? null : i;
+      renderHand();
+      document.getElementById('instruct').textContent = G.selectedCardIdx !== null
+        ? `[${card.letters.join('/')}] SELECTED · TAP AN ASTEROID TO TRANSMIT`
+        : 'TAP AN ASTEROID TO LOCK TARGET · OR SELECT A CARD FIRST';
+    }
+  });
+  return div;
 }
 
 function renderSidebar() {
@@ -1303,13 +2101,19 @@ function renderSidebar() {
   G.asteroids.filter(a => a.active && !a.exploding).forEach(ast => {
     const div = document.createElement('div');
     div.className = 'a-info' + (G.claimAsteroidId === ast.id ? ' claimed' : (ast.y > earthY() * 0.65 && ast.y > 0) ? ' danger' : '');
-    div.innerHTML = `<div class="a-letters">${pool(ast).join(' ')}</div><div style="font-size:9px;color:#445;margin-top:2px">${ast.pattern.toUpperCase()} · ${Math.max(0,Math.round(ast.y/earthY()*100))}%</div>`;
+    if (ast.isCrate) {
+      div.style.borderColor = 'rgba(255,204,0,0.5)';
+      div.style.background = 'rgba(255,180,0,0.06)';
+      div.innerHTML = `<div style="font-size:11px;color:#ffcc44">📦 SUPPLY CRATE</div><div style="font-size:10px;letter-spacing:2px;margin-top:2px">${pool(ast).sort().join(' ')}</div>`;
+    } else {
+      const mlBadge = ast.minLen > 2 ? ` · <span style="color:${ast.minLen===4?'#c084fc':'#f59e0b'}">${ast.minLen}+</span>` : '';
+      div.innerHTML = `<div class="a-letters">${pool(ast).join(' ')}</div><div style="font-size:9px;color:#445;margin-top:2px">${(ast.pattern||'').toUpperCase()} · ${Math.max(0,Math.round(ast.y/earthY()*100))}%${mlBadge}</div>`;
+    }
     panel.appendChild(div);
   });
 }
 
 function refreshHUD() {
-  document.getElementById('min-len-val').textContent = G.minLength + '+';
   const hp = G.hp || 0;
   document.getElementById('lives-val').textContent = hp;
   const bar = document.getElementById('hp-bar');
@@ -1326,6 +2130,17 @@ function refreshUI() { renderHand(); renderSidebar(); refreshHUD(); }
 // ============================================================
 // KEYBOARD
 // ============================================================
+// Mobile keyboard: sync hidden input value -> G.claimWord
+document.getElementById('word-input').addEventListener('input', function() {
+  if (!document.getElementById('word-panel').classList.contains('visible')) return;
+  G.claimWord = this.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
+  this.value = G.claimWord;
+  updateWordDisplay();
+});
+document.getElementById('word-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); confirmClaim(); }
+});
+
 document.addEventListener('keydown', e => {
   if (G.gameOver) return;
   const wp = document.getElementById('word-panel');
@@ -1351,16 +2166,19 @@ document.addEventListener('keydown', e => {
 function updateWordDisplay() {
   const el = document.getElementById('word-display');
   el.textContent = G.claimWord;
+  const inp = document.getElementById('word-input');
+  if (inp && document.activeElement !== inp) inp.value = G.claimWord;
   const ast = G.asteroids.find(a => a.id === G.claimAsteroidId);
   if (!ast || !G.claimWord) { el.className = ''; return; }
   const p = pool(ast);
-  const ok = canForm(G.claimWord, p) && isValid(G.claimWord) && G.claimWord.length >= G.minLength;
-  const bad = (!canForm(G.claimWord, p) && G.claimWord.length > 0) || (G.claimWord.length >= 2 && !canForm(G.claimWord,p));
+  const astMinLen = (ast && ast.minLen) || 2;
+  const ok = canForm(G.claimWord, p) && isValid(G.claimWord) && G.claimWord.length >= astMinLen;
+  const bad = G.claimWord.length > 0 && !canForm(G.claimWord, p);
   el.className = ok ? 'valid' : (G.claimWord.length >= 2 && !canForm(G.claimWord, p)) ? 'invalid' : '';
 }
 
 document.getElementById('wconfirm').addEventListener('click', confirmClaim);
-document.getElementById('wclear').addEventListener('click', () => { G.claimWord = ''; updateWordDisplay(); });
+document.getElementById('wclear').addEventListener('click', () => { G.claimWord = ''; document.getElementById('word-input').value = ''; updateWordDisplay(); });
 document.getElementById('wcancel').addEventListener('click', () => {
   document.getElementById('word-panel').classList.remove('visible');
   G.claimAsteroidId = null; G.claimWord = '';
@@ -1372,12 +2190,12 @@ document.getElementById('wcancel').addEventListener('click', () => {
 // winGame removed - endless mode
 function loseGame() {
   G.gameOver = true;
-  document.getElementById('end-title').textContent = 'EARTH DESTROYED';
+  document.getElementById('end-title').textContent = 'EARTH LOST';
   document.getElementById('end-title').style.color = 'var(--danger)';
-  document.getElementById('end-sub').textContent = 'THE ASTEROIDS WERE TOO MANY.';
+  document.getElementById('end-sub').textContent = 'THE DEFENCE LINE HAS FALLEN.';
   document.getElementById('final-score').textContent = G.score;
   document.getElementById('end-stats').innerHTML =
-    `LEVEL ${G.level} &nbsp;·&nbsp; ${G.wordsDestroyed} WORDS &nbsp;·&nbsp; ${G.asteroids.filter(a=>!a.active&&!a.exploding).length} ASTEROIDS CLEARED`;
+    `LEVEL ${G.level} &nbsp;·&nbsp; ${G.wordsDestroyed} WORDS &nbsp;·&nbsp; ${G.asteroids.filter(a=>!a.active&&!a.exploding).length} TARGETS NEUTRALISED`;
   document.getElementById('end-screen').classList.remove('hidden');
   flashScreen('#ff3c3c');
 }
@@ -1443,6 +2261,14 @@ document.getElementById('restart-btn').addEventListener('click', () => {
 
 // Idle star animation before game starts
 (function idle() { tickStars(); requestAnimationFrame(idle); })();
+// ══════════════════════════════════════════════════════════════
+// UPGRADE ENGINE
+// G.upgrades = [ {id, stacks} ] — persistent across a run
+// Upgrades reference each other by id for synergies
+// ══════════════════════════════════════════════════════════════
+
+// Helper: how many stacks of an upgrade does the player have?
+// Give the player an upgrade (stackable)
 </script>
 </body>
 </html>
