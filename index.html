@@ -2356,12 +2356,13 @@ document.querySelectorAll('.diff-btn').forEach(b => b.addEventListener('click', 
   document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('sel'));
   b.classList.add('sel');
 }));
-// Load word list on startup, enable start button when ready
+// Load word list and leaderboard on startup
 loadWordList().then(() => {
   const btn = document.getElementById('start-btn');
   btn.disabled = false;
   btn.style.opacity = '';
 });
+loadLeaderboard();
 
 document.getElementById('start-btn').addEventListener('click', showChallengeScreen);
 document.getElementById('challenge-skip').addEventListener('click', skipChallenge);
