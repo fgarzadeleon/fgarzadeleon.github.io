@@ -469,11 +469,7 @@
   .wbtn.ok { border-color: var(--success); color: var(--success); }
   .wbtn.ok:hover { background: rgba(0,255,136,0.1); }
 
-  #sidebar {
-    position: fixed; right: 14px; top: 72px; bottom: 155px; z-index: 10;
-    display: flex; flex-direction: column; gap: 5px; overflow-y: auto;
-    pointer-events: none;
-  }
+  #sidebar { display: none; }
   .a-info {
     background: rgba(5,14,31,0.85); border: 1px solid var(--ui-dim);
     border-radius: 4px; padding: 5px 9px; font-size: 10px; color: var(--ui-bright);
@@ -488,6 +484,19 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: rgba(2,8,18,0.96); gap: 20px;
   }
+  #start-screen {
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  #start-inner {
+    display: flex; gap: 28px; align-items: flex-start;
+    justify-content: center; flex-wrap: wrap;
+    width: 100%; max-width: 920px;
+  }
+  #start-left  { display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 280px; max-width: 440px; }
+  #start-right { flex: 1; min-width: 260px; max-width: 400px; }
+  #leaderboard-section { margin-top: 0; width: 100%; max-width: 100%; }
   .screen.hidden { display: none; }
   .screen-title {
     font-family: var(--font-title); font-size: clamp(30px, 7vw, 60px);
@@ -602,30 +611,37 @@
 
 <!-- START SCREEN -->
 <div id="start-screen" class="screen">
-  <div class="screen-title">ASTEROIDELL</div><div style="font-size:11px;letter-spacing:4px;color:var(--ui-dim);margin-top:-10px;margin-bottom:4px">MARK II</div>
-  <div class="screen-sub">TRANSMIT CODES TO DESTROY INBOUND ASTEROIDS.<br>DEFEND EARTH AS LONG AS YOU CAN.</div>
-  <div class="rules-box">
-    <h3>// MISSION BRIEFING</h3>
-    <strong style="color:var(--letter-glow)">PLAY</strong> — Click a card, then click an asteroid. Its letters join the asteroid's free letter pool.<br>
-    <strong style="color:var(--letter-glow)">WORD</strong> — Click any asteroid to spell a word using <em>any</em> of its letters in any combination.<br>
-    Transmit and decode <strong>freely at any time</strong> — no turns, no waiting.<br><br>
-    Each word must be <strong>longer</strong> than the last.<br>
-    Every 2 transmissions you receive new <strong>technology</strong>. Systems stack. Build your defence grid.<br>
-    Earth has <strong>20 HP</strong>. Asteroids deal damage on impact — larger targets hit harder.
-  </div>
-  <div>
-    <div class="hud-label" style="text-align:center;margin-bottom:10px">DIFFICULTY</div>
-    <div class="diff-row">
-      <button class="diff-btn sel" data-speed="0.25" data-ast="3">SCOUT</button>
-      <button class="diff-btn" data-speed="0.45" data-ast="4">COMMANDER</button>
-      <button class="diff-btn" data-speed="0.75" data-ast="5">ADMIRAL</button>
+  <div class="screen-title">ASTEROIDELL</div>
+  <div style="font-size:11px;letter-spacing:4px;color:var(--ui-dim);margin-top:-14px;margin-bottom:4px">MARK II</div>
+  <div id="start-inner">
+    <div id="start-left">
+      <div class="screen-sub" style="text-align:left;max-width:100%">TRANSMIT CODES TO DESTROY INBOUND ASTEROIDS.<br>DEFEND EARTH AS LONG AS YOU CAN.</div>
+      <div class="rules-box">
+        <h3>// MISSION BRIEFING</h3>
+        <strong style="color:var(--letter-glow)">TARGET</strong> — Tap asteroid to lock &amp; open panel. Tap cards to add letters. Type or hit DESTROY.<br>
+        <strong style="color:var(--letter-glow)">LOADOUT</strong> — 5 cards, 2 letters each. Play onto asteroids to grow their letter pool. No word reuse.<br>
+        <strong style="color:var(--letter-glow)">BADGES</strong> — <span style="color:#f59e0b">Amber 3+</span> · <span style="color:#c084fc">Purple 4+</span> · <span style="color:#ef4444">Red 5+</span>. Harder = slower fall. Impact: 5 + 2×cards HP.<br>
+        <strong style="color:var(--letter-glow)">CRATES</strong> — Every 2 words a supply crate drops. Decode it to choose 1 of 3 upgrades. Miss it, lose it.<br>
+        <strong style="color:var(--letter-glow)">SCORE</strong> — 8 pts per letter. Multipliers stack. Killstreak bonus resets after 4s idle.<br>
+        <strong style="color:var(--letter-glow)">EARTH</strong> — 20 HP. Don't let it reach zero.
+      </div>
+      <div>
+        <div class="hud-label" style="text-align:center;margin-bottom:10px">DIFFICULTY</div>
+        <div class="diff-row">
+          <button class="diff-btn sel" data-speed="0.25" data-ast="3">SCOUT</button>
+          <button class="diff-btn" data-speed="0.45" data-ast="4">COMMANDER</button>
+          <button class="diff-btn" data-speed="0.75" data-ast="5">ADMIRAL</button>
+        </div>
+      </div>
+      <div id="word-load-status" style="font-size:10px;letter-spacing:2px;color:var(--ui-dim);min-height:16px;text-align:center">CALIBRATING LINGUISTICS ARRAY...</div>
+      <button class="btn" id="start-btn" disabled style="opacity:0.5;align-self:center">DEPLOY</button>
     </div>
-  </div>
-  <div id="word-load-status" style="font-size:10px;letter-spacing:2px;color:var(--ui-dim);min-height:16px">CALIBRATING LINGUISTICS ARRAY...</div>
-  <button class="btn" id="start-btn" disabled style="opacity:0.5">DEPLOY</button>
-  <div id="leaderboard-section">
-    <div id="lb-title">// COMMAND LEADERBOARD</div>
-    <div id="lb-rows"><div id="lb-loading">CONTACTING COMMAND...</div></div>
+    <div id="start-right">
+      <div id="leaderboard-section">
+        <div id="lb-title">// COMMAND LEADERBOARD</div>
+        <div id="lb-rows"><div id="lb-loading">CONTACTING COMMAND...</div></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1029,7 +1045,7 @@ function newGame() {
     asteroids: [],
     score: 0,
     usedWords: new Set(),
-    wordLenWeights: [0,0,70,20,10], // index=minLen, weights for 2,3,4
+    wordLenWeights: [0,0,70,20,10,0], // index=minLen, weights for 2,3,4
     gameOver: false,
     hp: 20,
     level: 1,
@@ -1082,7 +1098,7 @@ function pickMinLen() {
 }
 
 // Speed multiplier: higher minLen = slower (more time to build letters)
-const MIN_LEN_SPEED = { 2: 1.0, 3: 0.72, 4: 0.50 };
+const MIN_LEN_SPEED = { 2: 1.0, 3: 0.72, 4: 0.50, 5: 0.38 };
 
 function spawnAsteroid(slotIndex) {
   // Pull a card with a vowel to be the "A card" anchor
@@ -1577,10 +1593,11 @@ function levelUp() {
   else if (G.level >= 5) G.levelEvery = 2;
   // Shift word length weights: more 3s and 4s as levels increase
   const w = G.wordLenWeights;
-  const shift = Math.min(G.level * 3, 40); // cap shift at level ~13
-  w[2] = Math.max(10, 70 - shift);
-  w[3] = Math.min(50, 20 + shift * 0.6);
-  w[4] = Math.min(40, 10 + shift * 0.4);
+  const shift = Math.min(G.level * 3, 60);
+  w[2] = Math.max(5,  70 - shift);
+  w[3] = Math.min(45, 20 + shift * 0.5);
+  w[4] = Math.min(35, 10 + shift * 0.35);
+  w[5] = G.level >= 10 ? Math.min(25, (G.level - 10) * 4) : 0;
   flashScreen('#ffcc44');
   // Mark II: spawn a supply crate instead of pausing
   const upgrades = getRandomUpgrades(3);
@@ -1749,7 +1766,7 @@ function drawAsteroid(ast, isTarget, isDanger, clickHint) {
     const badgeR = r * 0.32;
     const bx = r * 0.62, by = -r * 0.62;
     c.beginPath(); c.arc(bx, by, badgeR, 0, Math.PI*2);
-    c.fillStyle = ast.minLen === 4 ? '#c084fc' : '#f59e0b';
+    c.fillStyle = ast.minLen >= 5 ? '#ef4444' : ast.minLen === 4 ? '#c084fc' : '#f59e0b';
     c.fill();
     c.font = `bold ${Math.round(badgeR * 1.1)}px 'Orbitron',monospace`;
     c.textAlign = 'center'; c.textBaseline = 'middle';
