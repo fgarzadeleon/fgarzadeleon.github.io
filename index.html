@@ -569,7 +569,7 @@
 <div id="sidebar"></div>
 
 <div id="word-panel">
-  <div id="word-panel-title">TAP CARDS TO BUILD · KEYBOARD OR TYPE · ENTER TO DESTROY</div>
+  <div id="word-panel-title">TAP CARDS · TYPE · ENTER TO DESTROY</div>
   <div id="word-avail"></div>
   <div id="word-display"></div>
   <input id="word-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none;">
@@ -1871,21 +1871,42 @@ function drawCrate(ast) {
   }
   ctx.restore();
 
-  // ── Upgrade icon (top half) ────────────────────────────────
-  ctx.font = '28px serif';
+  // ── Upgrade icon (top section) ────────────────────────────
+  ctx.font = '26px serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(ast.crateUpgrades ? ast.crateUpgrades[0].icon : '📦', 0, -H*0.35);
+  ctx.fillText(ast.crateUpgrades ? ast.crateUpgrades[0].icon : '📦', 0, -H * 0.42);
 
-  // ── Letters (bottom section) ───────────────────────────────
+  // ── Letters grid (bottom section, like asteroid style) ────
   const letters = pool(ast).sort();
-  ctx.font = `bold 10px 'Orbitron',monospace`;
-  ctx.fillStyle = `rgba(255,220,80,${0.75 + pulse * 0.25})`;
-  ctx.fillText(letters.join(' '), 0, H * 0.58);
+  const n = letters.length;
+  const cols = Math.min(n, 4);
+  const rows = Math.ceil(n / cols);
+  // Fit inside bottom half of crate with padding
+  const availW = (W - 10) * 2;
+  const availH = H * 0.7;
+  const cellW = availW / cols;
+  const cellH = availH / rows;
+  const fs = Math.max(9, Math.min(18, Math.floor(Math.min(cellW, cellH) * 0.62)));
+  ctx.font = `900 ${fs}px 'Orbitron',monospace`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const startY = H * 0.08;
+  letters.forEach((l, idx) => {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const lx = (col - (cols - 1) / 2) * cellW;
+    const ly = startY + (row - (rows - 1) / 2) * cellH;
+    // Drop shadow like asteroid letters
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillText(l, lx + 1.5, ly + 1.5);
+    ctx.fillStyle = `rgba(255,220,80,${0.8 + pulse * 0.2})`;
+    ctx.fillText(l, lx, ly);
+  });
 
-  // ── "DECODE" label ─────────────────────────────────────────
+  // ── "DECODE" label at bottom ───────────────────────────────
   ctx.font = `bold 7px 'Orbitron',monospace`;
-  ctx.fillStyle = `rgba(255,180,0,${pulse * 0.6})`;
-  ctx.fillText('DECODE', 0, H * 0.82);
+  ctx.fillStyle = `rgba(255,180,0,${pulse * 0.55})`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('DECODE', 0, H * 0.87);
 
   ctx.restore();
 }
