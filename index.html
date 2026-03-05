@@ -2356,13 +2356,12 @@ document.querySelectorAll('.diff-btn').forEach(b => b.addEventListener('click', 
   document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('sel'));
   b.classList.add('sel');
 }));
-// Load word list and leaderboard on startup
+// Load word list on startup
 loadWordList().then(() => {
   const btn = document.getElementById('start-btn');
   btn.disabled = false;
   btn.style.opacity = '';
 });
-loadLeaderboard();
 
 document.getElementById('start-btn').addEventListener('click', showChallengeScreen);
 document.getElementById('challenge-skip').addEventListener('click', skipChallenge);
@@ -2409,7 +2408,7 @@ async function sbGet(table, query) {
       }
     });
     return await r.json();
-  } catch(e) { console.warn('Leaderboard fetch failed', e); return []; }
+  } catch(e) { console.warn('Leaderboard fetch failed', e); return null; }
 }
 
 async function submitScore(name, score, level, words) {
@@ -2425,7 +2424,11 @@ async function loadLeaderboard() {
   const rows = document.getElementById('lb-rows');
   rows.innerHTML = '<div id="lb-loading">CONTACTING COMMAND...</div>';
   const data = await fetchLeaderboard();
-  if (!data || !data.length) {
+  if (data === null) {
+    rows.innerHTML = '<div id="lb-loading">COMMAND UNREACHABLE</div>';
+    return;
+  }
+  if (!data.length) {
     rows.innerHTML = '<div id="lb-loading">NO SCORES YET — BE THE FIRST</div>';
     return;
   }
@@ -2467,6 +2470,9 @@ document.getElementById('submit-score-btn').addEventListener('click', async () =
     submitBtn.disabled = false;
   }
 });
+
+// Load leaderboard now that all functions are defined
+loadLeaderboard();
 
 // Idle star animation before game starts
 (function idle() { tickStars(); requestAnimationFrame(idle); })();
